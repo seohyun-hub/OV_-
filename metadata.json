@@ -1,0 +1,6 @@
+{
+  "name": "Oak Valley Marketing & Partnership Intelligence Tool",
+  "description": "오크밸리 리조트·골프 맞춤 트렌드 및 기업 제휴 인텔리전스 AI 대시보드",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
