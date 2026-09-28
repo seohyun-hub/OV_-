@@ -58,7 +58,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
             }`}
           >
             <TrendingUp className="w-3.5 h-3.5" />
-            <span>Trend Intelligence</span>
+            <span>트렌드 빠른 검색</span>
           </button>
 
           <button
@@ -71,7 +71,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
             }`}
           >
             <Building2 className="w-3.5 h-3.5" />
-            <span>Company Intelligence</span>
+            <span>기업 정보 빠른 검색</span>
           </button>
         </div>
 

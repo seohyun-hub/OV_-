@@ -1,0 +1,192 @@
+[
+  {
+    "createdAt": "2026-08-01",
+    "name": "네이버 데이터랩 (Naver DataLab)",
+    "description": "네이버 분야별 검색 트렌드, 쇼핑인사이트, 지역별/성연령별 관심도 통계 리소스",
+    "id": "ref-001",
+    "category": "검색 & 트렌드",
+    "url": "https://datalab.naver.com",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "구글 트렌드 (Google Trends)",
+    "description": "전 세계 및 국가별 실시간 검색어 키워드 관심도 및 추이 분석",
+    "id": "ref-002",
+    "category": "검색 & 트렌드",
+    "url": "https://trends.google.com",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "KOSIS 국가통계포털 (통계청)",
+    "description": "대한민국 공식 국가 통계 포털, 인구·산업·서비스업·관광 종합 데이터",
+    "id": "ref-003",
+    "category": "시장조사",
+    "url": "https://kosis.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "한국관광 데이터랩 (한국관광공사)",
+    "description": "국내외 관광객 빅데이터, 카드 소비 패턴, 지역별 관광객 방문 추이",
+    "id": "ref-004",
+    "category": "관광",
+    "url": "https://datalab.visitkorea.or.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "KOTRA 해외시장뉴스 (대한무역투자진흥공사)",
+    "description": "글로벌 시장 트렌드, 해외 소비재/서비스 동향 보고서 및 무역 정보",
+    "id": "ref-005",
+    "category": "글로벌 리서치",
+    "url": "https://dream.kotra.or.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "Global Wellness Institute (GWI)",
+    "description": "글로벌 웰니스 경제, 스파·수면·리커버리 및 웰니스 투어리즘 공식 연구보고서",
+    "id": "ref-006",
+    "category": "웰니스",
+    "url": "https://globalwellnessinstitute.org",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "강원특별자치도청 공식 포털",
+    "description": "강원특별자치도 도정 소식, 관광·레저·문화 정책 공고 및 보도자료",
+    "id": "ref-007",
+    "category": "강원특별자치도",
+    "url": "https://www.provin.gangwon.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "원주시청 공식 포털",
+    "description": "원주시 시정 소식, 원주 관광/축제/문화 행사 동향 및 공식 알림",
+    "id": "ref-008",
+    "category": "원주시",
+    "url": "https://www.wonju.go.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "한국소비자원 (KCA)",
+    "description": "소비자 동향 리포트, 거래 실태 조사, 서비스 평가 및 소비자 권익 자료",
+    "id": "ref-009",
+    "category": "소비자 정보",
+    "url": "https://www.kca.go.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "국가법령정보센터 (법제처)",
+    "description": "관광진흥법, 체육시설 설치·이용 법률, 식품위생법 등 관련 규정 조회",
+    "id": "ref-010",
+    "category": "법률·규정",
+    "url": "https://www.law.go.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "한국호텔업협회 (KHA)",
+    "description": "국내 호텔업 객실 가동률(OCC), ADR 수입 통계 및 산업 동향",
+    "id": "ref-011",
+    "category": "호텔",
+    "url": "https://www.hotelskorea.or.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "한국골프장경영협회 (KGBA)",
+    "description": "전국 회원제/대중제 골프장 이용객 동향 및 골프 산업 현황 데이터",
+    "id": "ref-012",
+    "category": "골프",
+    "url": "https://www.kgba.co.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "문화체육관광부 (MCST)",
+    "description": "대한민국 문화·체육·관광 정책, 관광자원 육성 및 공식 보도자료",
+    "id": "ref-013",
+    "category": "정부·공공기관",
+    "url": "https://www.mcst.go.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "대학내일20대연구소",
+    "description": "MZ세대/Z세대 소비 트렌드, 미디어 이용 행태 및 트렌드 인사이트",
+    "id": "ref-014",
+    "category": "마케팅 리서치",
+    "url": "https://www.20slab.org",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "오픈서베이 (OpenSurvey)",
+    "description": "소비자 행태 트렌드 리포트, 모바일 쇼핑·F&B·식음료 인사이트",
+    "id": "ref-015",
+    "category": "마케팅 리서치",
+    "url": "https://www.opensurvey.co.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "스포티비뉴스 (SPOTV NEWS)",
+    "description": "국내외 스포츠, 골프, 아웃도어 스포츠 이슈 및 전문 미디어 보도",
+    "id": "ref-016",
+    "category": "스포츠",
+    "url": "https://www.spotvnews.co.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "더바이어 (The Buyer)",
+    "description": "유통, F&B, 프랜차이즈, B2B 소비재 트렌드 및 유통 전문 매체",
+    "id": "ref-017",
+    "category": "미디어",
+    "url": "https://www.itbuyer.com",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "패션엔 (FashionN)",
+    "description": "패션, 뷰티, 패션 라이프스타일 브랜드 트렌드, 팝업스토어 및 콜라보 소식",
+    "id": "ref-018",
+    "category": "브랜드",
+    "url": "https://www.fashionn.com",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  },
+  {
+    "createdAt": "2026-08-01",
+    "name": "한국콘텐츠진흥원 (KOCCA)",
+    "description": "대한민국 콘텐츠 산업 동향, 캐릭터/IP/라이선싱 및 융복합 리서치",
+    "id": "ref-019",
+    "category": "기타",
+    "url": "https://www.kocca.kr",
+    "isOfficial": true,
+    "updatedAt": "2026-08-01"
+  }
+]

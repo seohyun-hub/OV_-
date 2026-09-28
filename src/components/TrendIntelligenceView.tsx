@@ -1,21 +1,60 @@
-import React, { useState } from 'react';
-import { TrendReport, TrendFilter } from '../types';
+import React, { useState, useEffect } from 'react';
+import { TrendReport, TrendFilter, KeyTrend, TrendRadarItem } from '../types';
 import {
-  Search, Filter, TrendingUp, BarChart3, Building2, Lightbulb,
-  ArrowRight, ShieldCheck, RefreshCw, Download, TreePine, Sparkles, Compass, CheckCircle2, Zap, BookOpen
+  Search, Filter, TrendingUp, Building2, Lightbulb,
+  ArrowRight, ShieldCheck, RefreshCw, Download, Sparkles,
+  ExternalLink, Bookmark, BookmarkCheck, CheckCircle2,
+  Calendar, Layers, Radio, Globe, ChevronRight, Info, AlertTriangle
 } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { exportTrendReportToPPTX } from '../utils/pptExporter';
-import { SourcesAndReferencesSection } from './SourcesAndReferencesSection';
-import { KnowledgeBaseBadge } from './KnowledgeBaseBadge';
 
 interface TrendIntelligenceViewProps {
   report: TrendReport | null;
   loading: boolean;
   error?: string | null;
-  onSearch: (query: string, filter?: Partial<TrendFilter>) => void;
+  onSearch: (query: string, filter?: Partial<TrendFilter>, forceRefresh?: boolean) => void;
   onAnalyzeCompany: (companyName: string) => void;
+  onCreatePartnershipProposal?: (companyName: string) => void;
+  onNavigateToKnowledge?: () => void;
 }
+
+const BROAD_CATEGORIES: TrendFilter['category'][] = [
+  '전체',
+  'AI·테크',
+  '소비 트렌드',
+  '유통·리테일',
+  'F&B',
+  '뷰티',
+  '헬스케어·의료기기',
+  '패션',
+  '스포츠·러닝·골프',
+  '금융',
+  '자동차·모빌리티',
+  '콘텐츠·엔터테인먼트',
+  '공간·팝업',
+  '여행',
+  '웰니스',
+  '라이프스타일',
+  '문화·예술',
+  '키즈·교육',
+  '시니어',
+  '반려동물',
+  '스타트업·신사업',
+];
+
+const PRESET_QUERIES = [
+  '요즘 뜨는 소비 트렌드',
+  'AI 신사업',
+  '웰니스·헬스케어',
+  'F&B 팝업',
+  '러닝·스포츠',
+  '시니어 비즈니스',
+  '반려동물 시장',
+  '공간·팝업 트렌드',
+  '친환경·지속가능성',
+];
+
+const LOCAL_STORAGE_SAVED_TRENDS_KEY = 'ipark_saved_trend_discovery_items';
 
 export const TrendIntelligenceView: React.FC<TrendIntelligenceViewProps> = ({
   report,
@@ -23,115 +62,263 @@ export const TrendIntelligenceView: React.FC<TrendIntelligenceViewProps> = ({
   error,
   onSearch,
   onAnalyzeCompany,
+  onCreatePartnershipProposal,
+  onNavigateToKnowledge,
 }) => {
   const [searchInput, setSearchInput] = useState(report?.query || '');
-  const [filterPeriod, setFilterPeriod] = useState<TrendFilter['period']>('최근 1년');
+  const [filterPeriod, setFilterPeriod] = useState<TrendFilter['period']>('최근 7일');
   const [filterRegion, setFilterRegion] = useState<TrendFilter['region']>('한국');
-  const [filterCategory, setFilterCategory] = useState<TrendFilter['category']>('Wellness');
-  const [showFilters, setShowFilters] = useState(true);
+  const [filterCategory, setFilterCategory] = useState<TrendFilter['category']>('전체');
+  const [showFilters, setShowFilters] = useState(false);
+  const [activeViewTab, setActiveViewTab] = useState<'current' | 'saved'>('current');
+  const [selectedLocalCategory, setSelectedLocalCategory] = useState<string>('전체');
 
-  React.useEffect(() => {
+  // Saved/Bookmarked Trends (Decoupled Archive)
+  const [savedTrends, setSavedTrends] = useState<KeyTrend[]>(() => {
+    try {
+      const stored = localStorage.getItem(LOCAL_STORAGE_SAVED_TRENDS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
     if (report?.query) {
       setSearchInput(report.query);
     }
-  }, [report?.query]);
+    if (report?.filters?.period) {
+      setFilterPeriod(report.filters.period);
+    }
+    if (report?.filters?.category) {
+      setFilterCategory(report.filters.category);
+    }
+  }, [report?.query, report?.filters]);
 
-  // Mobile Collapsible Sections State (default all open, but togglable)
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
-
-  const toggleSection = (sectionKey: string) => {
-    setCollapsedSections((prev) => ({
-      ...prev,
-      [sectionKey]: !prev[sectionKey],
-    }));
+  const toggleSaveTrend = (trend: KeyTrend) => {
+    setSavedTrends((prev) => {
+      const exists = prev.some((item) => item.title === trend.title);
+      let updated: KeyTrend[];
+      if (exists) {
+        updated = prev.filter((item) => item.title !== trend.title);
+      } else {
+        updated = [trend, ...prev];
+      }
+      try {
+        localStorage.setItem(LOCAL_STORAGE_SAVED_TRENDS_KEY, JSON.stringify(updated));
+      } catch (err) {
+        console.error('Failed to save trend to localStorage:', err);
+      }
+      return updated;
+    });
   };
 
-  const presetQueries = [
-    '요가',
-    '초콜릿',
-    '향수',
-    '반려동물',
-    '피클볼',
-    '수면',
-    '키즈',
-    '와인',
-    '캠핑',
-    '2026 웰니스 트렌드',
-    '최근 팝업스토어 트렌드',
-  ];
+  const isTrendSaved = (trend: KeyTrend) => {
+    return savedTrends.some((item) => item.title === trend.title);
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchInput.trim()) {
-      onSearch(searchInput.trim(), {
-        period: filterPeriod,
-        region: filterRegion,
-        category: filterCategory,
-      });
+      setActiveViewTab('current');
+      onSearch(
+        searchInput.trim(),
+        {
+          period: filterPeriod,
+          region: filterRegion,
+          category: filterCategory,
+        },
+        false
+      );
+    }
+  };
+
+  const handleForceRefresh = () => {
+    if (searchInput.trim()) {
+      setActiveViewTab('current');
+      onSearch(
+        searchInput.trim(),
+        {
+          period: filterPeriod,
+          region: filterRegion,
+          category: filterCategory,
+        },
+        true
+      );
     }
   };
 
   const handlePresetClick = (q: string) => {
     setSearchInput(q);
-    onSearch(q, {
-      period: filterPeriod,
-      region: filterRegion,
-      category: filterCategory,
-    });
+    setActiveViewTab('current');
+    onSearch(
+      q,
+      {
+        period: filterPeriod,
+        region: filterRegion,
+        category: filterCategory,
+      },
+      false
+    );
+  };
+
+  const [selectedSection, setSelectedSection] = useState<string>('전체');
+  const [selectedSubDimension, setSelectedSubDimension] = useState<string>('전체');
+  const [visibleCount, setVisibleCount] = useState<number>(12);
+
+  // URL Helper functions to enforce strict article URL vs official homepage separation
+  const isSpecificArticleUrl = (url?: string): boolean => {
+    if (!url || typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    if (!trimmed || !trimmed.startsWith('http')) return false;
+    try {
+      const parsed = new URL(trimmed);
+      if (parsed.hostname.includes('google.com') && parsed.pathname.includes('/search')) return false;
+      const cleanPath = parsed.pathname.replace(/\/$/, '');
+      if (!cleanPath || cleanPath === '' || cleanPath === '/index.html' || cleanPath === '/index.php') return false;
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const isValidOfficialUrl = (url?: string): boolean => {
+    if (!url || typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    if (!trimmed || !trimmed.startsWith('http')) return false;
+    try {
+      new URL(trimmed);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // Reset pagination on report change
+  useEffect(() => {
+    setVisibleCount(12);
+    setSelectedSection('전체');
+    setSelectedSubDimension('전체');
+  }, [report?.query]);
+
+  // Filter key trends locally by category, section, sub-dimension
+  const allKeyTrends = report?.keyTrends || [];
+
+  const filteredKeyTrends = allKeyTrends.filter((trend) => {
+    if (selectedLocalCategory !== '전체' && trend.category !== selectedLocalCategory) return false;
+    if (selectedSection !== '전체' && trend.section !== selectedSection) return false;
+    if (selectedSubDimension !== '전체' && trend.subDimension !== selectedSubDimension) return false;
+    return true;
+  });
+
+  const displayedKeyTrends = filteredKeyTrends.slice(0, visibleCount);
+  const hasMoreTrends = filteredKeyTrends.length > visibleCount;
+
+  const uniqueCategories = Array.from(
+    new Set(allKeyTrends.map((t) => t.category).filter(Boolean))
+  );
+
+  const detectedSubDimensions = report?.detectedSubDimensions && report.detectedSubDimensions.length > 0
+    ? report.detectedSubDimensions
+    : Array.from(new Set(allKeyTrends.map((t) => t.subDimension).filter(Boolean)));
+
+  const ALL_SECTIONS = [
+    '전체',
+    '업계 핵심 변화',
+    '주요 브랜드/기업 움직임',
+    '골프장/리조트 사례',
+    '기술/서비스',
+    '소비자 변화',
+    '제휴 아이디어',
+  ];
+
+  const getSourceTypeBadge = (sourceType?: string) => {
+    switch (sourceType) {
+      case '공식자료':
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+      case '리서치':
+        return 'bg-indigo-50 text-indigo-800 border-indigo-200';
+      case '언론':
+        return 'bg-slate-100 text-slate-800 border-slate-300';
+      case 'Trend Discovery':
+      default:
+        return 'bg-amber-50 text-amber-800 border-amber-200';
+    }
   };
 
   return (
-    <div className="space-y-8 pb-16">
-      
-      {/* Header & Search Section */}
-      <div className="bg-white border border-slate-200 rounded-sm p-6 sm:p-8 space-y-6 shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+    <div className="space-y-6 pb-16">
+      {/* 1. Header & Search Bar */}
+      <div className="bg-white border border-[#E8E4DC] rounded-xs p-5 sm:p-7 space-y-5 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F0ECE1] pb-4">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-mono rounded-xs uppercase tracking-wider">
-                Market & Trend Radar
+              <span className="px-2 py-0.5 text-[10px] font-mono font-semibold bg-[#736152] text-white rounded-2xs tracking-wider">
+                TREND DISCOVERY
               </span>
-              <h1 className="text-2xl font-serif font-bold text-slate-900">Market & Trend Radar</h1>
+              <span className="text-[11px] text-[#8C7A6B] font-sans">
+                사회·소비·범산업 트렌드 탐색 & IPARK리조트 기회 발굴
+              </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
-              글로벌 시장 변화, 소비자 기호 전환, 브랜드 선도 사례 및 사업화 기회 분석
+            <h1 className="text-xl sm:text-2xl font-serif font-bold text-[#2C2C2C] mt-1.5">
+              트렌드 탐색
+            </h1>
+            <p className="text-xs sm:text-sm text-[#666666] mt-1 font-sans max-w-3xl leading-relaxed">
+              사회·소비·산업 전반에서 새롭게 나타나는 최신 트렌드를 폭넓게 발견하고,
+              IPARK리조트에 적용 가능한 실질적 협업·공간 기회를 발굴합니다.
             </p>
           </div>
 
-          <div className="flex items-center space-x-2 text-xs text-slate-500">
-            <span className="font-mono text-slate-400">STATUS:</span>
-            <span className="inline-flex items-center space-x-1 text-slate-700 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Gemini AI Engine Connected</span>
-            </span>
-          </div>
+          {report && (
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={handleForceRefresh}
+                disabled={loading}
+                className="px-3 py-1.5 bg-[#FAF8F5] hover:bg-[#EFECE6] text-[#5C4E43] border border-[#D9D3C7] rounded-2xs text-xs font-medium transition-colors flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                title="캐시를 무시하고 최신 검색 수행"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                <span>새로고침</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => exportTrendReportToPPTX(report)}
+                className="px-3 py-1.5 bg-[#736152] hover:bg-[#5C4E43] text-white rounded-2xs text-xs font-medium transition-colors flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>보고서 다운로드</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Large Search Bar */}
+        {/* Search Form */}
         <form onSubmit={handleSearchSubmit} className="space-y-4">
           <div className="relative flex flex-col sm:block">
             <input
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="어떤 시장이나 트렌드를 조사할까요?"
-              className="w-full pl-10 sm:pl-12 pr-4 sm:pr-32 py-3.5 text-sm sm:text-base bg-slate-50 border border-slate-300 rounded-sm focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 text-slate-900 placeholder:text-slate-400 font-medium shadow-2xs min-h-[48px]"
+              placeholder="사회·소비·산업 트렌드를 검색하세요 (예: 요즘 40대 소비, AI 신사업, 웰니스 팝업)"
+              className="w-full pl-10 sm:pl-12 pr-4 sm:pr-40 py-3.5 text-sm sm:text-base bg-[#FAF8F5] border border-[#D9D3C7] rounded-2xs focus:outline-none focus:bg-white focus:border-[#736152] focus:ring-1 focus:ring-[#736152] text-[#2C2C2C] placeholder:text-[#999999] font-medium shadow-2xs min-h-[48px]"
             />
-            <Search className="w-5 h-5 text-slate-400 absolute left-3.5 sm:left-4 top-3.5 sm:top-4" />
+            <Search className="w-5 h-5 text-[#8C7A6B] absolute left-3.5 sm:left-4 top-3.5 sm:top-4" />
             <button
-              id="trend-search-submit-btn"
+              id="trend-discovery-submit-btn"
               type="submit"
               disabled={loading}
-              className="mt-2 sm:mt-0 sm:absolute sm:right-2 sm:top-2 sm:bottom-2 px-5 py-3 sm:py-0 bg-slate-900 text-white hover:bg-slate-800 text-xs sm:text-xs font-semibold rounded-xs transition-colors disabled:opacity-50 flex items-center justify-center space-x-1.5 cursor-pointer min-h-[44px] sm:min-h-0"
+              className="mt-2 sm:mt-0 sm:absolute sm:right-2 sm:top-2 sm:bottom-2 px-5 py-3 sm:py-0 bg-[#736152] text-white hover:bg-[#5C4E43] text-xs sm:text-xs font-semibold rounded-2xs transition-colors disabled:opacity-50 flex items-center justify-center space-x-1.5 cursor-pointer min-h-[44px] sm:min-h-0 shadow-2xs"
             >
               {loading ? (
                 <>
                   <RefreshCw className="w-4 h-4 sm:w-3.5 sm:h-3.5 animate-spin" />
-                  <span>분석 중...</span>
+                  <span>탐색 중...</span>
                 </>
               ) : (
                 <>
-                  <span>인텔리전스 보고서 생성</span>
+                  <span>트렌드 탐색하기</span>
                   <ArrowRight className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                 </>
               )}
@@ -139,72 +326,104 @@ export const TrendIntelligenceView: React.FC<TrendIntelligenceViewProps> = ({
           </div>
 
           {/* Preset Chips */}
-          <div className="space-y-2">
-            <span className="text-xs font-semibold text-slate-500 font-mono">예시 검색어:</span>
-            <div className="flex flex-wrap gap-2">
-              {presetQueries.map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  onClick={() => handlePresetClick(q)}
-                  className={`px-3 py-1 text-xs border rounded-xs transition-all cursor-pointer ${
-                    report?.query === q
-                      ? 'bg-slate-900 text-white border-slate-900 font-medium'
-                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400 hover:bg-slate-50'
-                  }`}
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
+          <div className="flex items-center flex-wrap gap-1.5 pt-1">
+            <span className="text-[11px] font-semibold text-[#8C7A6B] font-mono mr-1">추천 탐색어:</span>
+            {PRESET_QUERIES.map((q) => (
+              <button
+                key={q}
+                type="button"
+                onClick={() => handlePresetClick(q)}
+                className={`px-2.5 py-1 text-xs border rounded-2xs transition-all cursor-pointer ${
+                  report?.query === q
+                    ? 'bg-[#736152] text-white border-[#736152] font-medium'
+                    : 'bg-white text-[#5C4E43] border-[#E8E4DC] hover:border-[#736152] hover:bg-[#FAF8F5]'
+                }`}
+              >
+                {q}
+              </button>
+            ))}
           </div>
 
-          {/* Search Filters Toolbar */}
-          <div className="pt-3 border-t border-slate-100">
-            <div className="flex items-center justify-between cursor-pointer" onClick={() => setShowFilters(!showFilters)}>
-              <div className="flex items-center space-x-2 text-xs font-semibold text-slate-800 uppercase tracking-wider font-mono">
-                <Filter className="w-3.5 h-3.5 text-slate-600" />
-                <span>검색 필터 (기간 / 지역 / 카테고리)</span>
+          {/* Filters Accordion Toggle */}
+          <div className="pt-2 border-t border-[#F0ECE1]">
+            <div
+              className="flex items-center justify-between cursor-pointer py-1"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <div className="flex items-center space-x-2 text-xs font-semibold text-[#5C4E43]">
+                <Filter className="w-3.5 h-3.5 text-[#736152]" />
+                <span>검색 필터 (기간: {filterPeriod} · 카테고리: {filterCategory} · 지역: {filterRegion})</span>
               </div>
-              <span className="text-xs text-slate-400">{showFilters ? '접기 ▲' : '펼치기 ▼'}</span>
+              <span className="text-xs text-[#8C7A6B]">{showFilters ? '접기 ▲' : '필터 변경 ▼'}</span>
             </div>
 
             {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 text-xs">
-                {/* Period */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 text-xs bg-[#FAF8F5] p-3.5 rounded-2xs border border-[#E8E4DC] mt-2">
+                {/* 1. Period */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-700">기간</label>
+                  <label className="font-semibold text-[#2C2C2C] flex items-center space-x-1">
+                    <Calendar className="w-3.5 h-3.5 text-[#736152]" />
+                    <span>최신성 (우선순위)</span>
+                  </label>
                   <div className="flex flex-wrap gap-1">
-                    {(['최근 1개월', '최근 3개월', '최근 6개월', '최근 1년'] as const).map((p) => (
+                    {(['최근 7일', '최근 30일', '최근 90일', '최근 1개월', '최근 3개월', '최근 1년'] as const).map((p) => (
                       <button
                         key={p}
                         type="button"
                         onClick={() => setFilterPeriod(p)}
-                        className={`px-2.5 py-1 text-xs border rounded-xs ${
+                        className={`px-2.5 py-1 text-xs border rounded-2xs transition-colors ${
                           filterPeriod === p
-                            ? 'bg-slate-800 text-white border-slate-800 font-medium'
-                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                            ? 'bg-[#736152] text-white border-[#736152] font-semibold'
+                            : 'bg-white text-[#5C4E43] border-[#E8E4DC] hover:bg-[#FAF8F5]'
                         }`}
                       >
                         {p}
                       </button>
                     ))}
                   </div>
+                  <span className="text-[10px] text-[#8C7A6B] block">
+                    * 최근 7일 내 변화를 1순위로 탐색하며, 필요 시 30일/90일로 확장
+                  </span>
                 </div>
 
-                {/* Region */}
+                {/* 2. Category */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-700">지역</label>
+                  <label className="font-semibold text-[#2C2C2C] flex items-center space-x-1">
+                    <Layers className="w-3.5 h-3.5 text-[#736152]" />
+                    <span>범산업 카테고리 (전체 기본)</span>
+                  </label>
+                  <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value as any)}
+                    className="w-full px-2.5 py-1.5 bg-white border border-[#D9D3C7] rounded-2xs text-[#2C2C2C] font-medium focus:outline-none focus:border-[#736152]"
+                  >
+                    {BROAD_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[10px] text-[#8C7A6B] block">
+                    * 20여 개 범산업 영역을 편중 없이 탐색합니다
+                  </span>
+                </div>
+
+                {/* 3. Region */}
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-[#2C2C2C] flex items-center space-x-1">
+                    <Globe className="w-3.5 h-3.5 text-[#736152]" />
+                    <span>지역</span>
+                  </label>
                   <div className="flex flex-wrap gap-1">
-                    {(['한국', '글로벌', '미국', '일본', '유럽'] as const).map((r) => (
+                    {(['한국', '글로벌', '미국', '일본'] as const).map((r) => (
                       <button
                         key={r}
                         type="button"
                         onClick={() => setFilterRegion(r)}
-                        className={`px-2.5 py-1 text-xs border rounded-xs ${
+                        className={`px-2.5 py-1 text-xs border rounded-2xs transition-colors ${
                           filterRegion === r
-                            ? 'bg-slate-800 text-white border-slate-800 font-medium'
-                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                            ? 'bg-[#736152] text-white border-[#736152] font-semibold'
+                            : 'bg-white text-[#5C4E43] border-[#E8E4DC] hover:bg-[#FAF8F5]'
                         }`}
                       >
                         {r}
@@ -212,78 +431,127 @@ export const TrendIntelligenceView: React.FC<TrendIntelligenceViewProps> = ({
                     ))}
                   </div>
                 </div>
-
-                {/* Category */}
-                <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-700">카테고리</label>
-                  <select
-                    value={filterCategory}
-                    onChange={(e) => setFilterCategory(e.target.value as any)}
-                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-xs text-slate-800 font-medium focus:outline-none focus:border-slate-900"
-                  >
-                    {[
-                      'Marketing', 'Travel', 'Hospitality', 'Golf', 'Wellness',
-                      'Sports', 'F&B', 'Fashion', 'Beauty', 'Retail', 'Technology', 'Entertainment'
-                    ].map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
               </div>
             )}
           </div>
         </form>
       </div>
 
-      {/* Loading Skeleton View */}
-      {loading && (
-        <div className="bg-white border border-slate-200 rounded-sm p-8 space-y-6 text-center animate-pulse">
-          <div className="inline-flex items-center space-x-2 text-slate-600 text-sm font-medium">
-            <RefreshCw className="w-4 h-4 animate-spin text-slate-900" />
-            <span>AI 컨설팅 시스템이 시장 데이터 및 실시간 트렌드를 분석하고 있습니다...</span>
+      {/* Tabs: Current Search vs. Saved Archive */}
+      <div className="flex items-center justify-between border-b border-[#E8E4DC] pb-1">
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={() => setActiveViewTab('current')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-2xs transition-colors ${
+              activeViewTab === 'current'
+                ? 'bg-[#736152] text-white shadow-2xs'
+                : 'text-[#5C4E43] hover:bg-[#FAF8F5]'
+            }`}
+          >
+            최신 탐색 결과 {report ? `(${report.keyTrends?.length || 0}건)` : ''}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveViewTab('saved')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-2xs transition-colors flex items-center space-x-1.5 ${
+              activeViewTab === 'saved'
+                ? 'bg-[#736152] text-white shadow-2xs'
+                : 'text-[#5C4E43] hover:bg-[#FAF8F5]'
+            }`}
+          >
+            <Bookmark className="w-3.5 h-3.5" />
+            <span>저장된 트렌드 아카이브 ({savedTrends.length}건)</span>
+          </button>
+        </div>
+
+        {report && activeViewTab === 'current' && (
+          <span className="text-[11px] text-[#8C7A6B] font-mono hidden sm:inline">
+            탐색 기준: {report.recencyRangeUsed || '7일 이내'} • {report.generatedAt}
+          </span>
+        )}
+      </div>
+
+      {/* Loading Skeleton */}
+      {loading && !report && (
+        <div className="bg-white border border-[#E8E4DC] rounded-xs p-8 sm:p-12 space-y-6 text-center shadow-2xs">
+          <div className="inline-flex items-center space-x-2.5 text-[#5C4E43] text-sm font-medium">
+            <RefreshCw className="w-5 h-5 animate-spin text-[#736152]" />
+            <span>사회·소비·산업 전반의 실시간 변화와 팩트를 수집·검증하고 있습니다...</span>
           </div>
-          <div className="h-4 bg-slate-100 rounded w-2/3 mx-auto"></div>
-          <div className="h-24 bg-slate-100 rounded w-full"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="h-40 bg-slate-100 rounded"></div>
-            <div className="h-40 bg-slate-100 rounded"></div>
+          <div className="h-4 bg-[#FAF8F5] rounded w-2/3 mx-auto animate-pulse"></div>
+          <div className="h-28 bg-[#FAF8F5] rounded w-full animate-pulse"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="h-44 bg-[#FAF8F5] rounded animate-pulse"></div>
+            <div className="h-44 bg-[#FAF8F5] rounded animate-pulse"></div>
+            <div className="h-44 bg-[#FAF8F5] rounded animate-pulse"></div>
           </div>
+        </div>
+      )}
+
+      {/* Loading Top Banner when initial report is already displayed */}
+      {loading && report && (
+        <div className="bg-[#FAF8F5] border border-[#D9D3C7] rounded-xs p-3.5 flex items-center justify-center space-x-2 text-xs font-semibold text-[#5C4E43] animate-pulse">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#736152]" />
+          <span>분석 데이터를 불러오는 중입니다...</span>
         </div>
       )}
 
       {/* Error Message View */}
-      {!loading && error && (
-        <div className="bg-white border border-rose-200 rounded-sm p-8 text-center space-y-3 shadow-2xs">
-          <div className="text-rose-600 font-semibold text-base">
+      {!loading && error && !report && (
+        <div className="bg-white border border-rose-200 rounded-xs p-8 text-center space-y-3 shadow-2xs">
+          <div className="text-rose-700 font-semibold text-base">
             {error}
           </div>
-          <p className="text-xs text-slate-500">
-            검색 키워드를 확인하시고 다시 시도하시거나, 추천 키워드를 클릭해보세요.
+          <p className="text-xs text-[#666666] max-w-md mx-auto">
+            {error.includes('신규 트렌드가 없습니다')
+              ? '검색 기간을 더 넓히거나 범산업 카테고리를 전체로 선택하여 다시 탐색해 보세요.'
+              : '잠시 후 다시 시도하시거나, 다른 추천 검색어를 탐색해보세요.'}
           </p>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={handleForceRefresh}
+              className="px-4 py-2 bg-[#736152] text-white text-xs font-semibold rounded-2xs hover:bg-[#5C4E43] transition-colors"
+            >
+              다시 탐색하기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error Top Banner when initial report is displayed */}
+      {!loading && error && report && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xs p-3.5 text-center space-y-1 shadow-2xs">
+          <div className="text-amber-800 font-semibold text-xs flex items-center justify-center space-x-1.5">
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <span>{error}</span>
+          </div>
         </div>
       )}
 
       {/* Empty Initial State View */}
-      {!loading && !report && !error && (
-        <div className="bg-white border border-slate-200 rounded-sm p-10 text-center space-y-4 shadow-2xs">
-          <div className="w-12 h-12 bg-slate-100 text-slate-800 rounded-full flex items-center justify-center mx-auto border border-slate-200">
-            <TrendingUp className="w-6 h-6" />
+      {!loading && !report && !error && activeViewTab === 'current' && (
+        <div className="bg-white border border-[#E8E4DC] rounded-xs p-10 sm:p-14 text-center space-y-4 shadow-2xs">
+          <div className="w-12 h-12 bg-[#FAF8F5] text-[#736152] rounded-full flex items-center justify-center mx-auto border border-[#E8E4DC]">
+            <Radio className="w-6 h-6 animate-pulse" />
           </div>
           <div className="space-y-1.5 max-w-md mx-auto">
-            <h3 className="text-base font-bold font-serif text-slate-900">
-              트렌드 검색어를 입력해주세요
+            <h3 className="text-base font-bold font-serif text-[#2C2C2C]">
+              사회·소비·산업 트렌드를 탐색해보세요
             </h3>
-            <p className="text-xs text-slate-500 leading-relaxed font-sans">
-              상단 검색창에 조사하고자 하는 시장, 카테고리 또는 트렌드 키워드를 입력하시면 AI가 근거 기반 인텔리전스 보고서를 즉시 생성합니다.
+            <p className="text-xs text-[#666666] leading-relaxed font-sans">
+              특정 리조트나 호텔에 편중되지 않고, 현재 시장 전반에서 새롭게 일어나는 변화를
+              독립적으로 탐색한 후 IPARK리조트에 연결 가능한 기회를 분석해 드립니다.
             </p>
           </div>
           <div className="pt-2 flex flex-wrap justify-center gap-2">
-            {presetQueries.slice(0, 4).map((q) => (
+            {PRESET_QUERIES.slice(0, 5).map((q) => (
               <button
                 key={q}
                 type="button"
                 onClick={() => handlePresetClick(q)}
-                className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xs text-xs font-medium text-slate-700 cursor-pointer transition-colors"
+                className="px-3 py-1.5 bg-[#FAF8F5] hover:bg-[#EFECE6] border border-[#D9D3C7] rounded-2xs text-xs font-medium text-[#5C4E43] cursor-pointer transition-colors"
               >
                 🔍 {q}
               </button>
@@ -292,460 +560,502 @@ export const TrendIntelligenceView: React.FC<TrendIntelligenceViewProps> = ({
         </div>
       )}
 
-      {/* Report Content Display */}
-      {!loading && report && (
-        <div className="space-y-8">
-          
-          {/* Knowledge Base Usage Evidence Badge */}
-          <KnowledgeBaseBadge metadata={report.knowledgeBaseMetadata} />
-
-          {/* Report Title Bar */}
-          <div className="bg-[#2C2C2C] text-[#FAF8F5] p-6 rounded-xs border border-[#5C4E43] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* SAVED ARCHIVE TAB VIEW */}
+      {activeViewTab === 'saved' && (
+        <div className="space-y-4">
+          <div className="bg-white border border-[#E8E4DC] rounded-xs p-4 flex items-center justify-between">
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs font-mono text-[#D4C8B8]">REPORT ID: TR-{Math.floor(Math.random()*8999 + 1000)}</span>
-                <span className="px-2 py-0.5 text-[10px] bg-[#5C4E43] text-[#EFECE6] rounded-xs font-mono">
-                  {report.filters.region} • {report.filters.period} • {report.filters.category}
-                </span>
-              </div>
-              <h2 className="text-2xl font-serif-display font-bold text-[#FAF8F5] mt-1">
-                {report.query} Intelligence Report
-              </h2>
+              <h3 className="text-sm font-bold text-[#2C2C2C]">저장된 트렌드 아카이브</h3>
+              <p className="text-xs text-[#8C7A6B]">
+                사용자가 스크랩한 트렌드 카드 목록입니다. 최신 검색 결과와 분리되어 보관됩니다.
+              </p>
             </div>
-            
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                id="explore-related-companies-btn"
-                onClick={() => {
-                  const targetComp = report.brandCases?.[0]?.brandName || report.opportunities?.[0]?.possiblePartner?.split(',')[0] || report.query;
-                  onAnalyzeCompany(targetComp);
-                }}
-                className="px-4 py-2 bg-[#736152] hover:bg-[#5C4E43] text-white text-xs font-medium rounded-xs transition-colors flex items-center space-x-1.5 shadow-2xs cursor-pointer font-sans"
-              >
-                <span>관련 기업 탐색 &rarr;</span>
-              </button>
-
-              <button
-                id="export-trend-ppt-btn"
-                onClick={() => exportTrendReportToPPTX(report)}
-                className="px-4 py-2 bg-[#EFECE6] hover:bg-[#E2DDD5] text-[#2C2C2C] text-xs font-medium rounded-xs transition-colors flex items-center space-x-1.5 shadow-2xs cursor-pointer"
-              >
-                <Download className="w-4 h-4 text-[#736152]" />
-                <span>PPT 다운로드</span>
-              </button>
-            </div>
+            <span className="text-xs font-mono font-bold text-[#736152]">{savedTrends.length}건</span>
           </div>
 
-          {/* 1. Executive Summary */}
-          <section className="bg-white border border-slate-200 rounded-sm p-4 sm:p-8 space-y-4 shadow-2xs">
-            <div 
-              className="flex items-center justify-between border-b border-slate-100 pb-3 cursor-pointer sm:cursor-default"
-              onClick={() => toggleSection('execSummary')}
-            >
-              <div className="flex items-center space-x-2">
-                <ShieldCheck className="w-5 h-5 text-slate-800" />
-                <h3 className="text-base sm:text-lg font-serif font-bold text-slate-900">1. Executive Summary</h3>
-                <span className="text-xs text-slate-400 font-mono hidden sm:inline">핵심 변화 요약</span>
-              </div>
-              <button className="sm:hidden text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-xs">
-                {collapsedSections['execSummary'] ? '펼치기 ▲' : '접기 ▼'}
-              </button>
+          {savedTrends.length === 0 ? (
+            <div className="bg-white border border-[#E8E4DC] rounded-xs p-8 text-center text-xs text-[#8C7A6B]">
+              아직 저장된 트렌드가 없습니다. 트렌드 카드의 북마크 아이콘을 클릭하여 보관하세요.
             </div>
-
-            {!collapsedSections['execSummary'] && (
-              <div className="bg-slate-50 border border-slate-200 rounded-xs p-4 sm:p-5 space-y-3">
-                {(report.executiveSummary || []).map((summary, idx) => (
-                  <div key={idx} className="flex items-start space-x-3 text-xs sm:text-sm text-slate-800 leading-relaxed font-medium">
-                    <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center shrink-0 mt-0.5 font-mono">
-                      {idx + 1}
-                    </span>
-                    <span>{summary}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* 2. Key Trends */}
-          <section className="space-y-4">
-            <div 
-              className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer sm:cursor-default"
-              onClick={() => toggleSection('keyTrends')}
-            >
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="w-5 h-5 text-slate-800" />
-                <h3 className="text-base sm:text-lg font-serif font-bold text-slate-900">2. Key Trends</h3>
-                <span className="text-xs text-slate-500 font-mono hidden sm:inline">동인 및 발전 전망</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs font-mono text-slate-400">{report.keyTrends?.length || 0} KEY SHIFTS</span>
-                <button className="sm:hidden text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-xs">
-                  {collapsedSections['keyTrends'] ? '펼치기 ▲' : '접기 ▼'}
-                </button>
-              </div>
-            </div>
-
-            {!collapsedSections['keyTrends'] && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {(report.keyTrends || []).map((trend) => (
-                <div key={trend.id} className="bg-white border border-slate-200 rounded-sm p-6 space-y-4 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {savedTrends.map((trend) => (
+                <div
+                  key={trend.id}
+                  className="bg-white border border-[#E8E4DC] rounded-xs p-5 space-y-4 flex flex-col justify-between shadow-2xs"
+                >
                   <div className="space-y-3">
-                    <div className="flex flex-wrap gap-1">
-                      {trend.tags.map((tag) => (
-                        <span key={tag} className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-mono border border-slate-200 rounded-xs">
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    <h4 className="text-base font-serif font-bold text-slate-900 leading-snug">
-                      {trend.title}
-                    </h4>
-
-                    <p className="text-xs text-slate-700 font-medium bg-slate-50 p-3 rounded-xs border border-slate-100 leading-relaxed">
-                      {trend.description}
-                    </p>
-
-                    <div className="space-y-2.5 text-xs text-slate-600 pt-1">
-                      <div>
-                        <strong className="text-slate-900 block mb-0.5">■ 왜 성장하는가?</strong>
-                        <p className="leading-relaxed text-slate-700">{trend.whyGrowing}</p>
-                      </div>
-
-                      <div>
-                        <strong className="text-slate-900 block mb-0.5">■ 소비자 행동 변화:</strong>
-                        <p className="leading-relaxed text-slate-700">{trend.consumerBehavior}</p>
-                      </div>
-
-                      <div>
-                        <strong className="text-slate-900 block mb-0.5">■ 기업 활용 현황:</strong>
-                        <p className="leading-relaxed text-slate-700">{trend.corporateUsage}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 text-xs text-slate-600 space-y-3">
-                    <div>
-                      <strong className="text-slate-900 block mb-0.5">■ 향후 발전 가능성:</strong>
-                      <p className="leading-relaxed text-slate-700 font-medium">{trend.futureOutlook}</p>
-                    </div>
-
-                    {/* OAK VALLEY OPPORTUNITY SECTION */}
-                    {trend.oakValleyOpportunity && (
-                      <div className="bg-slate-900 text-white rounded-xs p-4 space-y-3 border border-slate-800 mt-2">
-                        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                          <div className="flex items-center space-x-1.5">
-                            <TreePine className="w-4 h-4 text-emerald-400" />
-                            <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-                              OAK VALLEY OPPORTUNITY
-                            </span>
-                          </div>
-                          {trend.oakValleyOpportunity.opportunityScore && (
-                            <span className="px-2 py-0.5 bg-amber-400 text-slate-900 text-[10px] font-mono font-black rounded-xs">
-                              SCORE: {trend.oakValleyOpportunity.opportunityScore}/100
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Recommended Assets */}
-                        {trend.oakValleyOpportunity.recommendedAssets && (
-                          <div className="flex flex-wrap items-center gap-1">
-                            <span className="text-[10px] text-slate-400 font-mono">추천 자산:</span>
-                            {trend.oakValleyOpportunity.recommendedAssets.map((ast, i) => (
-                              <span key={i} className="px-1.5 py-0.5 bg-slate-800 text-amber-300 text-[10px] font-mono border border-slate-700 rounded-xs">
-                                {ast}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        <div className="space-y-1.5 text-[11px] text-slate-300">
-                          <div>
-                            <span className="text-slate-400 font-semibold block">추천 프로그램:</span>
-                            <p className="text-white font-medium">{trend.oakValleyOpportunity.recommendedProgram}</p>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[10px]">
-                            <div>
-                              <span className="text-slate-400">타깃 고객:</span> {trend.oakValleyOpportunity.targetCustomer}
-                            </div>
-                            <div>
-                              <span className="text-slate-400">제휴 파트너군:</span> {trend.oakValleyOpportunity.potentialPartnerCategory}
-                            </div>
-                          </div>
-
-                          <div className="pt-1 text-[10px]">
-                            <span className="text-slate-400">수익 모델:</span> {trend.oakValleyOpportunity.businessModel}
-                          </div>
-
-                          {trend.oakValleyOpportunity.quickWin && (
-                            <div className="bg-emerald-950/80 border border-emerald-800/80 p-2 rounded-xs text-[10px] text-emerald-200">
-                              <strong className="text-emerald-300 block mb-0.5 font-mono uppercase">⚡ Quick Win (단기 추진)</strong>
-                              {trend.oakValleyOpportunity.quickWin}
-                            </div>
-                          )}
-
-                          {trend.oakValleyOpportunity.longTermOpportunity && (
-                            <div className="bg-blue-950/80 border border-blue-800/80 p-2 rounded-xs text-[10px] text-blue-200">
-                              <strong className="text-blue-300 block mb-0.5 font-mono uppercase">🚀 Long-Term Opportunity (장기 관점)</strong>
-                              {trend.oakValleyOpportunity.longTermOpportunity}
-                            </div>
-                          )}
-
-                          {trend.oakValleyOpportunity.spaceAndTouchpoints && (
-                            <div className="text-[10px] text-slate-400 pt-1 font-mono">
-                              📍 접점 공간: {trend.oakValleyOpportunity.spaceAndTouchpoints}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            )}
-          </section>
-
-          {/* 3. Numbers & Signals (Charts & Metrics) */}
-          <section className="bg-white border border-slate-200 rounded-sm p-4 sm:p-8 space-y-6 shadow-2xs">
-            <div 
-              className="flex items-center justify-between border-b border-slate-100 pb-3 cursor-pointer sm:cursor-default"
-              onClick={() => toggleSection('numbersSignals')}
-            >
-              <div className="flex items-center space-x-2">
-                <BarChart3 className="w-5 h-5 text-slate-800" />
-                <h3 className="text-base sm:text-lg font-serif font-bold text-slate-900">3. Numbers & Signals</h3>
-                <span className="text-xs text-slate-400 font-mono hidden sm:inline">시장 규모 및 데이터 수치</span>
-              </div>
-              <button className="sm:hidden text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-xs">
-                {collapsedSections['numbersSignals'] ? '펼치기 ▲' : '접기 ▼'}
-              </button>
-            </div>
-
-            {!collapsedSections['numbersSignals'] && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {(report.metrics || []).map((metric, idx) => (
-                  <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xs p-4 sm:p-5 space-y-3 flex flex-col justify-between">
-                    <div>
-                      <span className="text-xs font-semibold text-slate-500 font-mono uppercase tracking-wider block mb-1">
-                        {metric.label}
+                    <div className="flex items-center justify-between">
+                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#FAF8F5] text-[#5C4E43] border border-[#E8E4DC] rounded-2xs">
+                        {trend.category}
                       </span>
-                      <div className="flex items-baseline space-x-2">
-                        <span className="text-xl sm:text-2xl font-bold font-serif text-slate-900">{metric.currentValue}</span>
-                        <span className="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-xs border border-emerald-200 font-mono">
-                          YoY {metric.yoyChange}
-                        </span>
-                      </div>
-                    </div>
-
-                    {metric.chartData && metric.chartData.length > 0 && (
-                      <div className="h-28 w-full pt-2">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={metric.chartData}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis dataKey="year" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                            <YAxis hide />
-                            <Tooltip
-                              contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#fff', fontSize: '11px' }}
-                              formatter={(val: any) => [`${val} ${metric.unit}`, metric.label]}
-                            />
-                            <Bar dataKey="value" fill="#0f172a" radius={[2, 2, 0, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-
-                    <div className="pt-2 border-t border-slate-200/60 text-xs text-slate-600 font-medium">
-                      <span className="text-slate-400 block font-mono text-[10px] uppercase">Future Forecast</span>
-                      {metric.forecast}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* 4. Brand Cases */}
-          <section className="space-y-4">
-            <div 
-              className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer sm:cursor-default"
-              onClick={() => toggleSection('brandCases')}
-            >
-              <div className="flex items-center space-x-2">
-                <Building2 className="w-5 h-5 text-slate-800" />
-                <h3 className="text-base sm:text-lg font-serif font-bold text-slate-900">4. Brand Cases</h3>
-                <span className="text-xs text-slate-500 font-mono hidden sm:inline">국내외 대표 활용 사례</span>
-              </div>
-              <button className="sm:hidden text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-xs">
-                {collapsedSections['brandCases'] ? '펼치기 ▲' : '접기 ▼'}
-              </button>
-            </div>
-
-            {!collapsedSections['brandCases'] && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(report.brandCases || []).map((bc) => (
-                  <div key={bc.id} className="bg-white border border-slate-200 rounded-sm p-4 sm:p-6 space-y-4 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold font-serif text-slate-900 px-2 py-0.5 bg-slate-100 rounded-xs border border-slate-200">
-                          {bc.brandName}
-                        </span>
-                        <span className="text-[11px] font-mono text-slate-400">CASE REPORT</span>
-                      </div>
-
-                      <h4 className="text-base font-bold text-slate-900 leading-snug">
-                        {bc.projectTitle}
-                      </h4>
-
-                      <div className="space-y-2 text-xs text-slate-700">
-                        <div>
-                          <strong className="text-slate-900 block mb-0.5">■ 수행 내용:</strong>
-                          <p className="leading-relaxed">{bc.action}</p>
-                        </div>
-
-                        <div>
-                          <strong className="text-slate-900 block mb-0.5">■ 주목할 이유:</strong>
-                          <p className="leading-relaxed">{bc.whyNotable}</p>
-                        </div>
-
-                        <div className="bg-slate-50 p-2.5 rounded-xs border border-slate-100">
-                          <strong className="text-slate-900 block mb-0.5">■ 마케터 시사점:</strong>
-                          <p className="leading-relaxed font-medium text-slate-800">{bc.takeaway}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* CRITICAL CROSS-LINK BUTTON: Trend -> Company */}
-                    <div className="pt-3 border-t border-slate-100">
                       <button
-                        id={`analyze-brand-${bc.brandName.toLowerCase()}`}
-                        onClick={() => onAnalyzeCompany(bc.brandName)}
-                        className="w-full flex items-center justify-center space-x-1.5 py-2.5 px-3 text-xs font-semibold text-slate-900 bg-slate-100 hover:bg-slate-900 hover:text-white border border-slate-200 rounded-xs transition-colors cursor-pointer group min-h-[40px]"
+                        onClick={() => toggleSaveTrend(trend)}
+                        className="text-amber-600 hover:text-rose-600 transition-colors p-1"
+                        title="보관 해제"
                       >
-                        <Building2 className="w-3.5 h-3.5 text-slate-600 group-hover:text-white transition-colors" />
-                        <span>[{bc.brandName}] 기업 분석하기</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <BookmarkCheck className="w-4 h-4" />
                       </button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* 5. Emerging Signals */}
-          <section className="bg-white border border-slate-200 rounded-sm p-4 sm:p-6 space-y-4 shadow-2xs">
-            <div 
-              className="flex items-center justify-between border-b border-slate-100 pb-3 cursor-pointer sm:cursor-default"
-              onClick={() => toggleSection('emergingSignals')}
-            >
-              <div className="flex items-center space-x-2">
-                <Lightbulb className="w-5 h-5 text-slate-800" />
-                <h3 className="text-base sm:text-lg font-serif font-bold text-slate-900">5. Emerging Signals</h3>
-                <span className="text-xs text-slate-400 font-mono hidden sm:inline">초기 태동하는 신규 포착 신호</span>
-              </div>
-              <button className="sm:hidden text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-xs">
-                {collapsedSections['emergingSignals'] ? '펼치기 ▲' : '접기 ▼'}
-              </button>
-            </div>
-
-            {!collapsedSections['emergingSignals'] && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(report.emergingSignals || []).map((signal, idx) => (
-                  <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xs p-4 space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                      <h4 className="text-sm font-bold text-slate-900">{signal.title}</h4>
-                    </div>
-                    <p className="text-xs text-slate-700 leading-relaxed">{signal.description}</p>
-                    <div className="pt-2 text-[11px] text-slate-500 border-t border-slate-200/60 font-mono">
-                      <span className="text-slate-800 font-semibold font-sans">예상 파급력: </span>
-                      {signal.potentialImpact}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* 6. Business Opportunity */}
-          <section className="bg-slate-900 text-white rounded-sm p-6 sm:p-8 space-y-6 shadow-md border border-slate-800">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div>
-                <span className="text-xs font-mono text-blue-400 uppercase tracking-widest block">STRATEGIC IMPLICATIONS</span>
-                <h3 className="text-xl font-serif font-bold text-white mt-0.5">6. Business Opportunity & Partnership Ideas</h3>
-              </div>
-              <span className="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-xs border border-slate-700 font-mono">
-                AI 추천 마케터 실행안
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(report.opportunities || []).map((opp) => (
-                <div key={opp.id} className="bg-slate-800/90 border border-slate-700 rounded-xs p-6 space-y-4 flex flex-col justify-between">
-                  <div className="space-y-3">
-                    <div className="inline-block px-2.5 py-1 bg-blue-950 text-blue-300 text-xs font-semibold rounded-xs border border-blue-800">
-                      기회 아이디어
-                    </div>
-
-                    <h4 className="text-lg font-bold text-white leading-snug">
-                      {opp.opportunity}
+                    <h4 className="text-base font-bold text-[#2C2C2C] leading-snug font-serif">
+                      {trend.title}
                     </h4>
-
-                    <div className="space-y-2 text-xs text-slate-300 pt-1">
-                      <div className="grid grid-cols-3 gap-2">
-                        <span className="text-slate-400 font-mono">타깃 고객:</span>
-                        <span className="col-span-2 text-white font-medium">{opp.targetCustomer}</span>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2">
-                        <span className="text-slate-400 font-mono">추천 제휴 파트너:</span>
-                        <span className="col-span-2 text-blue-300 font-semibold">{opp.possiblePartner}</span>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2">
-                        <span className="text-slate-400 font-mono">비즈니스 모델:</span>
-                        <span className="col-span-2 text-slate-200">{opp.businessModel}</span>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2 bg-slate-900/80 p-2.5 rounded-xs border border-slate-700 mt-2">
-                        <span className="text-emerald-400 font-mono font-semibold">기대 효과:</span>
-                        <span className="col-span-2 text-emerald-200 font-medium">{opp.expectedBenefit}</span>
-                      </div>
-                    </div>
+                    <p className="text-xs text-[#555555] leading-relaxed">
+                      {trend.whatIsHappening}
+                    </p>
                   </div>
 
-                  {/* CROSS-LINK BUTTON TO COMPANY INTELLIGENCE */}
-                  <div className="pt-3 border-t border-slate-700">
-                    <button
-                      id={`analyze-partner-${opp.possiblePartner.split(',')[0].trim().toLowerCase()}`}
-                      onClick={() => onAnalyzeCompany(opp.possiblePartner.split(',')[0].trim())}
-                      className="w-full flex items-center justify-center space-x-2 py-2 px-3 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-700 border border-slate-600 rounded-xs transition-colors cursor-pointer"
-                    >
-                      <Building2 className="w-3.5 h-3.5 text-blue-400" />
-                      <span>[{opp.possiblePartner.split(',')[0].trim()}] 파트너 기업 분석하기</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
-                    </button>
+                  <div className="pt-3 border-t border-[#F0ECE1] flex items-center justify-between gap-2 text-xs">
+                    {trend.sourceUrl && (
+                      <a
+                        href={trend.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#736152] hover:underline flex items-center space-x-1"
+                      >
+                        <span>원문 보기</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                    {trend.relatedCompanies?.[0] && (
+                      <button
+                        onClick={() => onAnalyzeCompany(trend.relatedCompanies![0])}
+                        className="text-[#5C4E43] hover:text-[#2C2C2C] font-medium"
+                      >
+                        [{trend.relatedCompanies[0]}] 분석
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
-          </section>
-
-          {/* 7. Sources & References */}
-          {report.references && report.references.length > 0 && (
-            <SourcesAndReferencesSection
-              references={report.references}
-              overallEvidenceLevel={report.evidenceLevel}
-              title="7. Research Sources & References"
-              description={`"${report.query}" 트렌드 인텔리전스는 정부기관, 글로벌 컨설팅 그룹, 산업 협회의 Tier 1~3 공식 출처와 검증된 데이터에 기반하여 작성되었습니다.`}
-            />
           )}
-
         </div>
       )}
 
+      {/* CURRENT SEARCH RESULTS VIEW */}
+      {report && activeViewTab === 'current' && (
+        <div className="space-y-7">
+          {/* 2. 오늘의 트렌드 레이더 (Today's Trend Radar) */}
+          {report.trendRadar && report.trendRadar.length > 0 && (
+            <section className="bg-gradient-to-br from-[#FAF8F5] to-white border border-[#D9D3C7] rounded-xs p-5 sm:p-6 space-y-4 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E4DC] pb-3">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-8 h-8 rounded-full bg-[#736152] text-white flex items-center justify-center shrink-0">
+                    <Radio className="w-4 h-4 animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h2 className="text-base sm:text-lg font-serif font-bold text-[#2C2C2C]">
+                        오늘의 트렌드 레이더
+                      </h2>
+                      <span className="px-2 py-0.5 bg-[#736152]/10 text-[#736152] text-[10px] font-mono font-bold rounded-2xs">
+                        TOP 5
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#8C7A6B] font-sans">
+                      범산업 최신 동향 중 새로움과 시의성이 가장 높은 상위 5대 핵심 신호
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 self-start sm:self-auto">
+                  <span className="px-2.5 py-1 text-[11px] bg-white text-[#5C4E43] border border-[#D9D3C7] rounded-2xs font-mono">
+                    ⏱️ 탐색 범위: {report.recencyRangeUsed || '7일 이내'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Radar Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5">
+                {report.trendRadar.map((radar, idx) => (
+                  <div
+                    key={radar.id || idx}
+                    className="bg-white border border-[#E8E4DC] rounded-xs p-3.5 space-y-2.5 flex flex-col justify-between hover:border-[#736152] transition-all shadow-2xs group"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#FAF8F5] text-[#5C4E43] border border-[#E8E4DC] rounded-2xs">
+                          {radar.category}
+                        </span>
+                        {radar.crossChecked && (
+                          <span className="text-[10px] text-emerald-700 font-medium flex items-center space-x-0.5" title="다수 언론/기관 교차 검증됨">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>교차검증</span>
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-xs sm:text-sm font-bold text-[#2C2C2C] leading-snug group-hover:text-[#736152] transition-colors">
+                        {radar.title}
+                      </h3>
+
+                      <p className="text-[11px] text-[#666666] leading-relaxed line-clamp-3">
+                        {radar.summary}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#F5F2EB] flex items-center justify-between text-[10px] text-[#8C7A6B]">
+                      <span className="truncate max-w-[90px]">{radar.sourceName}</span>
+                      {radar.sourceUrl ? (
+                        <a
+                          href={radar.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#736152] hover:underline flex items-center space-x-0.5"
+                          title="원문 보기"
+                        >
+                          <span>원문</span>
+                          <ExternalLink className="w-2.5 h-2.5" />
+                        </a>
+                      ) : (
+                        <span>{radar.publishedDate}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* 3. 전체 탐색 트렌드 리스트 & 6대 섹션 구획 */}
+          <section className="space-y-4">
+            {/* Search Intent Banner */}
+            <div className="bg-[#FAF8F5] border border-[#D9D3C7] rounded-xs p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-start md:items-center space-x-3">
+                <span className={`px-2.5 py-1 text-xs font-bold font-mono rounded-2xs border ${
+                  report.intentType === 'INDUSTRY_DEEP_DIVE'
+                    ? 'bg-emerald-800 text-white border-emerald-900'
+                    : 'bg-[#736152] text-white border-[#5C4E43]'
+                }`}>
+                  {report.intentType === 'INDUSTRY_DEEP_DIVE' ? `산업 딥다이브: ${report.targetIndustry || report.query}` : '범산업 탐색'}
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-[#2C2C2C]">
+                    {report.intentType === 'INDUSTRY_DEEP_DIVE'
+                      ? `"${report.targetIndustry || report.query}" 산업 내 세부 영역 딥다이브 (총 ${allKeyTrends.length}건 수집)`
+                      : `범산업 다채로운 소비 트렌드 탐색 (총 ${allKeyTrends.length}건 수집)`}
+                  </h3>
+                  <p className="text-xs text-[#666666] mt-0.5">
+                    {report.intentType === 'INDUSTRY_DEEP_DIVE'
+                      ? '타 산업의 일반 트렌드를 섞지 않고, 오직 해당 산업 내부의 운영, 기술, 브랜드, 소비자 변화를 집중 심층 분석하였습니다.'
+                      : '사회·소비·산업 전반의 최신 동향을 편중 없이 분산 탐색하여 수집하였습니다.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-xs text-[#8C7A6B] font-mono shrink-0">
+                표시 중: <strong className="text-[#2C2C2C]">{displayedKeyTrends.length}</strong> / {filteredKeyTrends.length}건
+              </div>
+            </div>
+
+            {/* Sub-Dimension Quick Pills */}
+            {detectedSubDimensions.length > 0 && (
+              <div className="bg-white border border-[#E8E4DC] rounded-xs p-3 space-y-2">
+                <div className="text-[11px] font-bold text-[#736152] flex items-center space-x-1 font-mono">
+                  <Layers className="w-3.5 h-3.5 text-[#736152]" />
+                  <span>세부 탐색축 필터 ({detectedSubDimensions.length}개):</span>
+                </div>
+                <div className="flex items-center flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSubDimension('전체')}
+                    className={`px-2.5 py-1 text-xs rounded-2xs border transition-colors cursor-pointer ${
+                      selectedSubDimension === '전체'
+                        ? 'bg-[#736152] text-white border-[#736152] font-bold'
+                        : 'bg-[#FAF8F5] text-[#5C4E43] border-[#E8E4DC] hover:border-[#736152]'
+                    }`}
+                  >
+                    전체
+                  </button>
+                  {detectedSubDimensions.map((sd) => (
+                    <button
+                      key={sd}
+                      type="button"
+                      onClick={() => setSelectedSubDimension(sd)}
+                      className={`px-2.5 py-1 text-xs rounded-2xs border transition-colors cursor-pointer ${
+                        selectedSubDimension === sd
+                          ? 'bg-[#736152] text-white border-[#736152] font-bold'
+                          : 'bg-white text-[#5C4E43] border-[#E8E4DC] hover:border-[#736152] hover:bg-[#FAF8F5]'
+                      }`}
+                    >
+                      {sd}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 6-Section Tabs */}
+            <div className="flex items-center flex-wrap gap-1.5 border-b border-[#E8E4DC] pb-2 pt-1">
+              <span className="text-xs font-bold text-[#5C4E43] mr-1">섹션별 보기:</span>
+              {ALL_SECTIONS.map((sec) => {
+                const count = sec === '전체'
+                  ? allKeyTrends.length
+                  : allKeyTrends.filter((t) => t.section === sec).length;
+
+                return (
+                  <button
+                    key={sec}
+                    type="button"
+                    onClick={() => {
+                      setSelectedSection(sec);
+                      setVisibleCount(12);
+                    }}
+                    className={`px-3 py-1.5 text-xs rounded-2xs border transition-colors cursor-pointer font-medium ${
+                      selectedSection === sec
+                        ? 'bg-[#2C2C2C] text-white border-[#2C2C2C] font-bold shadow-2xs'
+                        : 'bg-white text-[#5C4E43] border-[#E8E4DC] hover:bg-[#FAF8F5]'
+                    }`}
+                  >
+                    {sec} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Trend Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {displayedKeyTrends.map((trend) => {
+                const isSaved = isTrendSaved(trend);
+                const hasArticleUrl = isSpecificArticleUrl(trend.sourceUrl);
+                const hasOfficialUrl = isValidOfficialUrl(trend.officialUrl);
+
+                return (
+                  <div
+                    key={trend.id}
+                    className="bg-white border border-[#E8E4DC] rounded-xs p-5 space-y-4 shadow-2xs hover:border-[#736152] transition-all flex flex-col justify-between"
+                  >
+                    <div className="space-y-3.5">
+                      {/* Card Header Meta */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {trend.section && (
+                            <span className="px-2 py-0.5 text-[10px] font-bold bg-[#736152] text-white rounded-2xs">
+                              {trend.section}
+                            </span>
+                          )}
+                          {trend.subDimension && (
+                            <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#FAF8F5] text-[#5C4E43] border border-[#E8E4DC] rounded-2xs">
+                              {trend.subDimension}
+                            </span>
+                          )}
+                          <span className="px-1.5 py-0.5 text-[10px] font-medium bg-[#F5F2EB] text-[#8C7A6B] rounded-2xs">
+                            {trend.category}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => toggleSaveTrend(trend)}
+                          className={`p-1 transition-colors cursor-pointer ${
+                            isSaved ? 'text-amber-600' : 'text-[#8C7A6B] hover:text-[#2C2C2C]'
+                          }`}
+                          title={isSaved ? '저장됨' : '트렌드 저장'}
+                        >
+                          {isSaved ? (
+                            <BookmarkCheck className="w-4 h-4 fill-amber-500 text-amber-600" />
+                          ) : (
+                            <Bookmark className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Brand Header & Title */}
+                      <div>
+                        {trend.brandName && (
+                          <div className="text-xs font-bold text-[#736152] font-mono mb-0.5 flex items-center space-x-1">
+                            <Building2 className="w-3.5 h-3.5" />
+                            <span>{trend.brandName}</span>
+                          </div>
+                        )}
+                        <h3 className="text-base font-bold text-[#2C2C2C] leading-snug font-serif">
+                          {trend.title}
+                        </h3>
+                      </div>
+
+                      {/* Structured Analysis Section */}
+                      <div className="space-y-2.5 pt-1">
+                        {/* ① 확인된 사실 / 최근 활동 */}
+                        <div className="space-y-1 bg-[#FAF8F5] p-2.5 rounded-2xs border border-[#F0ECE1]">
+                          <div className="text-[11px] font-bold text-[#736152] flex items-center justify-between">
+                            <span className="flex items-center space-x-1">
+                              <span className="w-4 h-4 rounded-full bg-[#736152] text-white text-[9px] flex items-center justify-center font-mono">1</span>
+                              <span>최근 실제 활동 [FACT]</span>
+                            </span>
+                            <span className="text-[10px] text-[#8C7A6B] font-mono">
+                              게시일: {trend.publishedDate || '2026.08'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-[#2C2C2C] leading-relaxed font-normal">
+                            {trend.recentActivity || trend.whatIsHappening || trend.description}
+                          </p>
+                        </div>
+
+                        {/* ② 시장/소비 왜 주목할 만한가 */}
+                        <div className="space-y-1 bg-amber-50/50 p-2.5 rounded-2xs border border-amber-100">
+                          <div className="text-[11px] font-bold text-amber-900 flex items-center space-x-1">
+                            <span className="w-4 h-4 rounded-full bg-amber-800 text-white text-[9px] flex items-center justify-center font-mono">2</span>
+                            <span>왜 주목할 만한가 [INSIGHT]</span>
+                          </div>
+                          <p className="text-xs text-[#332211] leading-relaxed">
+                            {trend.whyNotable || trend.whyGrowing}
+                          </p>
+                        </div>
+
+                        {/* ③ 관련 제품/서비스 */}
+                        {trend.relatedProducts && trend.relatedProducts.length > 0 && (
+                          <div className="space-y-1 text-[11px] text-[#5C4E43]">
+                            <span className="font-bold font-mono text-[10px]">관련 제품/서비스:</span>
+                            <div className="flex flex-wrap gap-1 mt-0.5">
+                              {trend.relatedProducts.map((p) => (
+                                <span key={p} className="px-2 py-0.5 bg-[#F5F2EB] border border-[#E0D9CC] rounded-2xs text-[10px] font-medium text-[#2C2C2C]">
+                                  {p}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ④ IPARK리조트/오크밸리 활용 가능 포인트 */}
+                        <div className="pt-0.5">
+                          {trend.hasDirectApplication ? (
+                            <div className="bg-[#F7F4EE] border border-[#D9D3C7] p-2.5 rounded-2xs space-y-1">
+                              <div className="flex items-center space-x-1 text-[11px] font-bold text-[#736152]">
+                                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                                <span>IPARK리조트/오크밸리 활용 포인트</span>
+                              </div>
+                              <p className="text-xs text-[#2C2C2C] font-medium leading-relaxed pl-4">
+                                {trend.iparkResortAngle}
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="bg-[#FAF8F5] border border-[#E8E4DC] p-2 rounded-2xs space-y-1">
+                              <div className="flex items-center space-x-1 text-[10px] font-semibold text-[#8C7A6B]">
+                                <span>IPARK리조트 시사점 (시장 관찰 필요)</span>
+                              </div>
+                              <p className="text-[11px] text-[#666666] leading-relaxed pl-2">
+                                {trend.iparkResortAngle || '직접 적용보다 시장 소비 동향 추이 관찰 권장'}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Related Companies Chips */}
+                      {trend.relatedCompanies && trend.relatedCompanies.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1 pt-1">
+                          <span className="text-[10px] text-[#8C7A6B]">연관 기업:</span>
+                          {trend.relatedCompanies.map((comp) => (
+                            <button
+                              key={comp}
+                              type="button"
+                              onClick={() => onAnalyzeCompany(comp)}
+                              className="px-1.5 py-0.5 bg-[#FAF8F5] hover:bg-[#EFECE6] border border-[#E8E4DC] rounded-2xs text-[10px] font-medium text-[#5C4E43] transition-colors cursor-pointer"
+                              title={`${comp} 기업 분석 바로가기`}
+                            >
+                              #{comp}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons Toolbar with Strict URL Separation */}
+                    <div className="pt-3 border-t border-[#F0ECE1] space-y-2">
+                      <div className="flex items-center justify-between text-[11px] text-[#8C7A6B]">
+                        <span className="truncate max-w-[150px]" title={trend.sourceName}>
+                          출처: {trend.sourceName || '공식 언론 및 데이터'}
+                        </span>
+                        <span>{trend.publishedDate}</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-1.5 pt-1">
+                        {/* Button 1: Original Source (Only if specific article URL exists!) */}
+                        {hasArticleUrl ? (
+                          <a
+                            href={trend.sourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-2 bg-white hover:bg-[#FAF8F5] border border-[#D9D3C7] text-[#5C4E43] text-xs font-semibold rounded-2xs transition-colors flex items-center justify-center space-x-1 text-center"
+                            title="실제 확인된 기사/뉴스룸 글 열기"
+                          >
+                            <span>원문 보기</span>
+                            <ExternalLink className="w-3 h-3 text-[#736152]" />
+                          </a>
+                        ) : (
+                          <div className="px-2 py-2 bg-[#FAF8F5] text-[#A0988E] text-[11px] rounded-2xs border border-[#E8E4DC] text-center font-medium">
+                            원문 미제공
+                          </div>
+                        )}
+
+                        {/* Button 2: Official Homepage */}
+                        {hasOfficialUrl ? (
+                          <a
+                            href={trend.officialUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-2 bg-[#FAF8F5] hover:bg-[#EFECE6] border border-[#D9D3C7] text-[#2C2C2C] text-xs font-semibold rounded-2xs transition-colors flex items-center justify-center space-x-1 text-center"
+                            title="기업/브랜드 공식 홈페이지 열기"
+                          >
+                            <Globe className="w-3 h-3 text-[#736152]" />
+                            <span className="truncate">공식 홈페이지</span>
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => onAnalyzeCompany(trend.brandName || trend.relatedCompanies?.[0] || trend.title)}
+                            className="px-2 py-2 bg-[#FAF8F5] hover:bg-[#EFECE6] border border-[#D9D3C7] text-[#2C2C2C] text-xs font-semibold rounded-2xs transition-colors flex items-center justify-center space-x-1 cursor-pointer"
+                          >
+                            <Building2 className="w-3 h-3 text-[#736152]" />
+                            <span className="truncate">기업 상세분석</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Partnership Proposal Action */}
+                      {trend.hasDirectApplication && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const comp = trend.brandName || trend.relatedCompanies?.[0] || trend.title;
+                            if (onCreatePartnershipProposal) {
+                              onCreatePartnershipProposal(comp);
+                            } else {
+                              onAnalyzeCompany(comp);
+                            }
+                          }}
+                          className="w-full py-2 px-2 bg-[#736152] hover:bg-[#5C4E43] text-white text-xs font-medium rounded-2xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                          <span>제휴 아이디어 만들기 &rarr;</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Load More Expansion Button (20~30 items expansion) */}
+            {hasMoreTrends && (
+              <div className="pt-6 text-center">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((prev) => prev + 12)}
+                  className="px-8 py-3.5 bg-[#736152] hover:bg-[#5C4E43] text-white text-sm font-semibold rounded-2xs transition-all cursor-pointer shadow-2xs inline-flex items-center space-x-2"
+                >
+                  <span>더 보기 (+{filteredKeyTrends.length - visibleCount}개 트렌드 추가 펼치기)</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <span className="block text-xs text-[#8C7A6B] mt-2">
+                  * 전체 {filteredKeyTrends.length}건 중 현재 {displayedKeyTrends.length}건 표시 중
+                </span>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
     </div>
   );
 };

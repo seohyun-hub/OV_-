@@ -1,0 +1,24 @@
+[
+  {
+    "id": "doc-1789895540933-lzrfa",
+    "title": "오크밸리 QA 공식 단가표",
+    "fileType": "TXT",
+    "targetBrand": "Oak Valley",
+    "category": "광고매체 Rate Card",
+    "fileSize": 132,
+    "uploadDate": "2026.09.20 09:12",
+    "version": "v2026.1",
+    "status": "ACTIVE",
+    "extractedText": "오크밸리 콘도 객실 정상가: 350,000원\n골프 18홀 단가: 220,000원\n야외 잔디광장 공간 대관료: 5,000,000원\n",
+    "summary": "오크밸리 콘도 객실 정상가: 350,000원\n골프 18홀 단가: 220,000원\n야외 잔디광장 공간 대관료: 5,000,000원\n...",
+    "chunks": [
+      {
+        "chunkId": "chk-0",
+        "chunkIndex": 0,
+        "text": "오크밸리 콘도 객실 정상가: 350,000원\n골프 18홀 단가: 220,000원\n야외 잔디광장 공간 대관료: 5,000,000원",
+        "charLength": 71
+      }
+    ],
+    "chunkCount": 1
+  }
+]

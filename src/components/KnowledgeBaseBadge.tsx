@@ -19,7 +19,7 @@ export const KnowledgeBaseBadge: React.FC<KnowledgeBaseBadgeProps> = ({
 
   return (
     <div className={`border rounded-sm bg-white overflow-hidden transition-all shadow-2xs ${className} ${
-      hasDocs ? 'border-emerald-200 hover:border-emerald-300' : 'border-amber-200 bg-amber-50/30'
+      hasDocs ? 'border-emerald-200 hover:border-emerald-300' : 'border-slate-200 hover:border-slate-300'
     }`}>
       {/* Header Badge Strip */}
       <div className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -27,7 +27,7 @@ export const KnowledgeBaseBadge: React.FC<KnowledgeBaseBadgeProps> = ({
         {/* Left Status Indicator */}
         <div className="flex items-start sm:items-center space-x-2.5">
           <div className={`p-1.5 rounded-xs shrink-0 ${
-            hasDocs ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+            hasDocs ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
           }`}>
             <Database className="w-4 h-4" />
           </div>
@@ -35,7 +35,7 @@ export const KnowledgeBaseBadge: React.FC<KnowledgeBaseBadgeProps> = ({
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold text-slate-900 tracking-tight">
-                AI Intelligence Source Evidence
+                분석 검증 및 공식 출처
               </span>
 
               {hasDocs ? (
@@ -44,9 +44,9 @@ export const KnowledgeBaseBadge: React.FC<KnowledgeBaseBadgeProps> = ({
                   Oak Valley / PARK ROCHE Internal Knowledge Used ✓
                 </span>
               ) : (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-xs text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                  <AlertCircle className="w-3 h-3 mr-1 text-amber-600" />
-                  등록된 내부자료가 없습니다. 회사소개서를 업로드해주세요.
+                <span className="inline-flex items-center px-2 py-0.5 rounded-xs text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                  <CheckCircle2 className="w-3 h-3 mr-1 text-slate-500" />
+                  공개 정보 인텔리전스 (외부 공식 출처 결합 분석)
                 </span>
               )}
             </div>
@@ -54,7 +54,7 @@ export const KnowledgeBaseBadge: React.FC<KnowledgeBaseBadgeProps> = ({
             <p className="text-[11px] text-slate-500 mt-0.5">
               {hasDocs
                 ? `내부 공식자료 ${metadata.activeDocCount}건 (1순위) + 외부 공식 검증자료 ${metadata.externalSourceCount || 5}건 결합 분석`
-                : '현재 공개 웹 정보 기반으로 분석되었습니다. 정확도 향상을 위해 공식 자료를 등록해주세요.'}
+                : '현재 공개 정보(산업 보고서 및 보도자료)에 기반하여 트렌드를 분석했습니다.'}
             </p>
           </div>
         </div>

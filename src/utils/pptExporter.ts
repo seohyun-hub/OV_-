@@ -140,7 +140,7 @@ export const exportTrendReportToPPTX = (report: TrendReport) => {
     color: 'CBD5E1',
   });
 
-  slide1.addText(`생성일자: ${getFormattedDate()}  |  분석 엔진: Gemini Marketing AI`, {
+  slide1.addText(`생성일자: ${getFormattedDate()}  |  분석 시스템: HDC Resort Marketing AI`, {
     x: 1.2,
     y: 4.8,
     w: 10.5,

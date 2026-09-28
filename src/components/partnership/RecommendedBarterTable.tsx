@@ -524,27 +524,27 @@ export const RecommendedBarterTable: React.FC<RecommendedBarterTableProps> = ({
                 {registeredAssets.map((asset) => (
                   <div
                     key={asset.id}
-                    className="p-3 hover:bg-blue-50/60 flex items-center justify-between transition-colors cursor-pointer"
+                    className="p-3 hover:bg-[#FAF8F5] flex items-center justify-between transition-colors cursor-pointer"
                     onClick={() => handleAddAssetFromList(asset)}
                   >
                     <div className="space-y-0.5">
                       <div className="flex items-center space-x-2">
-                        <span className="font-bold text-xs text-slate-900">{asset.itemName}</span>
-                        <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 font-mono text-[10px] rounded-xs">
+                        <span className="font-bold text-xs text-[#2C2C2C]">{asset.itemName}</span>
+                        <span className="px-1.5 py-0.5 bg-[#FAF8F5] border border-[#D4C8B8] text-[#736152] font-mono text-[10px] rounded-xs font-semibold">
                           {asset.type}
                         </span>
-                        <span className="text-xs text-slate-500 font-mono">📍 {asset.location}</span>
+                        <span className="text-xs text-[#786658] font-mono">📍 {asset.location}</span>
                       </div>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-[11px] text-[#786658]">
                         규격: {asset.specification} | 기간: {asset.period}
                       </p>
                     </div>
 
                     <div className="flex items-center space-x-3 shrink-0">
-                      <span className="text-xs font-mono font-bold text-blue-900">
+                      <span className="text-xs font-mono font-bold text-[#736152]">
                         {asset.unitPrice > 0 ? `${asset.unitPrice.toLocaleString()}원` : asset.unitPriceText || '별도 산정'}
                       </span>
-                      <button className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xs">
+                      <button className="px-2.5 py-1 bg-[#736152] hover:bg-[#5C4E43] text-white font-bold text-xs rounded-xs cursor-pointer">
                         추가
                       </button>
                     </div>

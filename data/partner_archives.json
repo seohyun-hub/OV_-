@@ -1,0 +1,360 @@
+[
+  {
+    "brandName": "마라톤",
+    "internalAssignee": "마케팅팀",
+    "notes": "공동대표",
+    "contactEmail": "coo_rok@mooncademy.co.kr",
+    "currentStatus": "완료",
+    "companyName": "클투",
+    "contactPerson": "김경록",
+    "industry": "스포츠·마라톤",
+    "latestProjectName": "2026 오크밸리 윈터 하프 마라톤 메인 스폰서십",
+    "nextAction": "12월 오크밸리cc 하프마라톤 대회 준비 ",
+    "contactTitle": "대표",
+    "latestProposalDate": "2026-09-10",
+    "id": "pa-1",
+    "contactPhone": "010-7631-5176",
+    "timeline": [
+      {
+        "id": "tl-1789974308379",
+        "date": "2026-09-21",
+        "author": "마케팅팀",
+        "content": "[자료 업로드] \"오크밸리리조트_12월윈터하프레이스_제안서._2609.pdf\" (v1.0) 파일 첨부 완료"
+      },
+      {
+        "id": "tl-1-1",
+        "date": "2026-09-10",
+        "author": "박서현",
+        "content": "최초 제안서 및 코스 활용안 발송 완료"
+      },
+      {
+        "id": "tl-1-2",
+        "date": "2026-09-12",
+        "author": "박서현",
+        "content": "스폰서십 패키지 최종 확정 및 유관 부서(시설·운영) 현장 점검 미팅 진행 완료"
+      }
+    ],
+    "proposals": [
+      {
+        "id": "prop-1-1",
+        "projectName": "2026 오크밸리 윈터 하프 마라톤 메인 스폰서십",
+        "proposalDate": "2026-09-10",
+        "proposalType": "스폰서십 & 공간대관",
+        "summary": "오크밸리 광장 및 러닝 코스를 활용한 동계 윈터 하프 마라톤 타이틀 제휴 패키지 제안",
+        "requests": "현금 후원금 3,000만원 + 리조트 객실 바터 50실",
+        "status": "진행 확정",
+        "result": "협약 체결 완료 및 코스 승인",
+        "files": [
+          {
+            "id": "file-1789974308241-nqh0f",
+            "fileName": "ì¤í¬ë°¸ë¦¬ë¦¬ì¡°í¸_12ììí°ííë ì´ì¤_ì ìì._2609.pdf",
+            "version": "v1.0",
+            "description": "제안 첨부 자료",
+            "uploadDate": "2026-09-21",
+            "fileUrl": null,
+            "fileType": "PDF",
+            "fileSizeFormatted": "9.0 MB",
+            "hasOriginalFile": false,
+            "storageProvider": "none",
+            "isStorageConnected": false
+          }
+        ]
+      }
+    ],
+    "updatedAt": "2026-09-21T07:05:13.826Z"
+  },
+  {
+    "brandName": "Garmin Golf",
+    "notes": "골프 앰버서더 초청 행사 연계",
+    "companyName": "Garmin Korea",
+    "industry": "골프·스포츠IT",
+    "latestProjectName": "Garmin Golf Approach 라운지 & 3D 스윙 촬영",
+    "latestProposalDate": "2026-09-08",
+    "id": "pa-2",
+    "timeline": [
+      {
+        "id": "tl-1789974403613",
+        "date": "2026-09-21",
+        "author": "전시현",
+        "content": "[자료 업로드] \"가민GGC.pdf\" (v1.0) 파일 첨부 완료"
+      },
+      {
+        "id": "tl-1789974363263",
+        "date": "2026-09-21",
+        "author": "전시현",
+        "content": "[자료 업로드] \"Garmin X Oak Valley Partnership Proposal (1).docx\" (v1.0) 파일 첨부 완료"
+      },
+      {
+        "id": "tl-2-1",
+        "date": "2026-09-08",
+        "author": "전시현",
+        "content": "Garmin Golf 팝업 제안서 최초 전달"
+      },
+      {
+        "id": "tl-2-2",
+        "date": "2026-09-11",
+        "author": "전시현",
+        "content": "행사 일정 협의 및 코스 대여 조건 1차 안 확정, 현장 촬영 렌탈 조율 중"
+      }
+    ],
+    "internalAssignee": "박서현",
+    "contactTitle": "매니저(과장)",
+    "contactEmail": "brian.oh@garmin.com",
+    "currentStatus": "진행 확정",
+    "contactPerson": "오석호 / 마케팅팀",
+    "nextAction": "2차 월송리 프렉티스홀 운영 준비",
+    "contactPhone": "010-4139-5375",
+    "proposals": [
+      {
+        "id": "prop-2-1",
+        "projectName": "Garmin Golf Approach 라운지 & 3D 스윙 촬영",
+        "proposalDate": "2026-09-08",
+        "proposalType": "골프 팝업 & 미디어 촬영",
+        "summary": "성문안 CC & 오크밸리 CC 스타트하우스 내 Approach 스마트워치 팝업 및 GPS 코스 체험존",
+        "requests": "골프존 팝업 무상 구좌 및 가민 스마트워치 20대 바터 협찬",
+        "status": "조건 조율",
+        "result": "1차 조건 합의 및 세부 계약서 검토 중",
+        "files": [
+          {
+            "id": "file-1789974403519-9gaqo",
+            "fileName": "ê°ë¯¼GGC.pdf",
+            "version": "v1.0",
+            "description": "가민GGC",
+            "uploadDate": "2026-09-21",
+            "fileUrl": null,
+            "fileType": "PDF",
+            "fileSizeFormatted": "268 KB",
+            "hasOriginalFile": false,
+            "storageProvider": "none",
+            "isStorageConnected": false
+          }
+        ]
+      }
+    ],
+    "updatedAt": "2026-09-21T07:08:37.842Z"
+  },
+  {
+    "brandName": "K-SWISS Pickleball",
+    "internalAssignee": "박서현",
+    "notes": "가을 피클볼 토너먼트 협찬 연계",
+    "contactEmail": "kswiss@k-swiss.co.kr",
+    "currentStatus": "협의 중",
+    "companyName": "K-SWISS Korea",
+    "contactPerson": "마케팅본부",
+    "industry": "스포츠·피클볼",
+    "latestProjectName": "K-SWISS 피클볼 코트 브랜딩 & 토너먼트 협찬",
+    "nextAction": "현물 협찬 품목 세부 수량 조정 회신",
+    "contactTitle": "부장",
+    "timeline": [
+      {
+        "id": "tl-3-1",
+        "date": "2026-09-05",
+        "author": "신현연",
+        "content": "피클볼 코트 네이밍 라이츠 및 행사 제안서 송부"
+      },
+      {
+        "id": "tl-3-2",
+        "date": "2026-09-10",
+        "author": "신현연",
+        "content": "제안서 수신 후 브랜드 존 구축 및 바터 협찬 품목 세부 검토 중"
+      }
+    ],
+    "latestProposalDate": "2026-09-05",
+    "id": "pa-3",
+    "proposals": [
+      {
+        "id": "prop-3-1",
+        "projectName": "K-SWISS 피클볼 코트 브랜딩 & 토너먼트 협찬",
+        "proposalDate": "2026-09-05",
+        "proposalType": "브랜드 제휴 & 현물 협찬",
+        "summary": "오크밸리 야외 피클볼 전용 코트 펜스 브랜딩 및 주말 동호인 대회 K-SWISS 라켓/의류 협찬",
+        "requests": "피클볼 코트 네이밍 라이츠 3개월 + 의류/신발 1,000만원 상당 협찬",
+        "status": "협의 중",
+        "result": "브랜드 존 설치 검토 중",
+        "files": [
+          {
+            "id": "file-3-1",
+            "fileName": "K-SWISS_Pickleball_Courts_Branding.pdf",
+            "version": "v1.0",
+            "description": "야외 코트 시안 및 브랜딩 가이드",
+            "uploadDate": "2026-09-05",
+            "fileType": "PDF",
+            "fileSizeFormatted": "8.5 MB",
+            "hasOriginalFile": false,
+            "storageProvider": "none"
+          }
+        ]
+      }
+    ],
+    "contactPhone": "02-3333-4444",
+    "updatedAt": "2026-09-21T07:09:05.265Z"
+  },
+  {
+    "brandName": "치유사물",
+    "internalAssignee": "박서현",
+    "notes": "웰니스 클럽 팝업 연계",
+    "contactEmail": "chiyu@chiyusamul.com",
+    "currentStatus": "진행 확정",
+    "companyName": "치유사물 (Chiyu Samul)",
+    "contactPerson": "치유사물 대표",
+    "industry": "웰니스·아로마",
+    "latestProjectName": "파크로쉬 & 오크밸리 아로마 힐링 클래스",
+    "nextAction": "주말 웰니스 모닝 클래스 일정 수립",
+    "contactTitle": "대표",
+    "timeline": [
+      {
+        "id": "tl-5-1",
+        "date": "2026-09-01",
+        "author": "전시현",
+        "content": "아로마 테라피 클래스 제안"
+      },
+      {
+        "id": "tl-5-2",
+        "date": "2026-09-08",
+        "author": "전시현",
+        "content": "팝업존 공간 배치 및 아로마 힐링 클래스 1차 샘플 제공 완료"
+      }
+    ],
+    "latestProposalDate": "2026-09-01",
+    "id": "pa-5",
+    "proposals": [
+      {
+        "id": "prop-5-1",
+        "projectName": "파크로쉬 & 오크밸리 아로마 힐링 클래스",
+        "proposalDate": "2026-09-01",
+        "proposalType": "웰니스 클래스 & 어메니티",
+        "summary": "파크로쉬 웰니스 클럽 내 아로마 오일 팝업 존 및 주말 투숙객 아로마 테라피 DIY 클래스",
+        "requests": "클래스 공간 제공 + 투숙객 웰컴 샘플 500개 증정",
+        "status": "진행 확정",
+        "result": "공간 배치 및 Sample 납품 완료",
+        "files": [
+          {
+            "id": "file-5-1",
+            "fileName": "치유사물_웰니스_클래스_기획서.pdf",
+            "version": "v1.0",
+            "description": "아로마 클래스 커리큘럼 및 샘플 사양",
+            "uploadDate": "2026-09-01",
+            "fileType": "PDF",
+            "fileSizeFormatted": "3.5 MB",
+            "hasOriginalFile": false,
+            "storageProvider": "none"
+          }
+        ]
+      }
+    ],
+    "contactPhone": "010-8888-9999",
+    "updatedAt": "2026-09-21T07:09:17.418Z"
+  },
+  {
+    "brandName": "Mindnook",
+    "internalAssignee": "전시현",
+    "notes": "담당자 지정 및 검토 진행",
+    "contactEmail": "contact@mindnook.co.kr",
+    "currentStatus": "제안 준비",
+    "companyName": "Mindnook (마인드눅)",
+    "contactPerson": "제휴사업팀",
+    "industry": "가족·웰니스",
+    "latestProjectName": "가족 마음챙김 키즈 웰니스 프로그램",
+    "nextAction": "파크로쉬 키즈 모듈 타당성 검토 회신",
+    "contactTitle": "팀장",
+    "timeline": [
+      {
+        "id": "tl-6-1",
+        "date": "2026-09-04",
+        "author": "신현연",
+        "content": "마인드눅 제휴 아이디어 수신 및 내부 기획안 작성 시작"
+      },
+      {
+        "id": "tl-6-2",
+        "date": "2026-09-07",
+        "author": "신현연",
+        "content": "기획안 초안 공유 및 파크로쉬 웰니스 키즈 프로그램 적용 가능 여부 타당성 검토"
+      }
+    ],
+    "latestProposalDate": "2026-09-04",
+    "id": "pa-6",
+    "proposals": [
+      {
+        "id": "prop-6-1",
+        "projectName": "가족 마음챙김 키즈 웰니스 프로그램",
+        "proposalDate": "2026-09-04",
+        "proposalType": "키즈 콘텐츠 & 체험",
+        "summary": "파크로쉬 라이브러리 연계 키즈 사운드 힐링 및 마음챙김 그림책 체험 프로그램",
+        "requests": "키즈 클래스 라이선스 및 교구 협찬",
+        "status": "제안 준비",
+        "result": "초안 검토 중",
+        "files": [
+          {
+            "id": "file-6-1",
+            "fileName": "Mindnook_Kids_Wellness_Draft.docx",
+            "version": "v0.9",
+            "description": "마인드눅 키즈 프로그램 초안",
+            "uploadDate": "2026-09-04",
+            "fileType": "DOC",
+            "fileSizeFormatted": "1.2 MB",
+            "hasOriginalFile": false,
+            "storageProvider": "none"
+          }
+        ]
+      }
+    ],
+    "contactPhone": "02-4444-5555",
+    "updatedAt": "2026-09-21T07:09:25.381Z"
+  },
+  {
+    "brandName": "영풍문고",
+    "internalAssignee": "박서현",
+    "notes": "북카페 비치 완결",
+    "contactEmail": "book@ypbooks.co.kr",
+    "currentStatus": "진행 확정",
+    "companyName": "영풍문고",
+    "contactPerson": "문화사업부",
+    "industry": "도서·문화",
+    "latestProjectName": "가을 북스테이 팝업 & 파크로쉬 도서 큐레이션",
+    "nextAction": "북토크 이벤트 일정 잡기",
+    "contactTitle": "차장",
+    "timeline": [
+      {
+        "id": "tl-7-1",
+        "date": "2026-09-02",
+        "author": "신현연",
+        "content": "북스테이 도서 바터 제안서 확정"
+      },
+      {
+        "id": "tl-7-2",
+        "date": "2026-09-11",
+        "author": "신현연",
+        "content": "가을 북스테이 콘셉트 도서 큐레이션 수령 및 리조트 내 비치 확정"
+      }
+    ],
+    "latestProposalDate": "2026-09-02",
+    "id": "pa-7",
+    "proposals": [
+      {
+        "id": "prop-7-1",
+        "projectName": "가을 북스테이 팝업 & 파크로쉬 도서 큐레이션",
+        "proposalDate": "2026-09-02",
+        "proposalType": "도서 바터 & 북스테이",
+        "summary": "오크밸리 로비 북카페 및 파크로쉬 라이브러리에 영풍문고 큐레이션 도서 300권 비치 및 북스테이 패키지",
+        "requests": "도서 300권 무상 지원 + 교보/영풍 온라인 패키지 홍보",
+        "status": "진행 확정",
+        "result": "도서 수령 및 비치 완료",
+        "files": [
+          {
+            "id": "file-7-1",
+            "fileName": "영풍문고_북스테이_큐레이션_목록.xlsx",
+            "version": "v1.0",
+            "description": "비치 도서 300권 타이틀 및 카테고리",
+            "uploadDate": "2026-09-02",
+            "fileType": "XLS",
+            "fileSizeFormatted": "520 KB",
+            "hasOriginalFile": false,
+            "storageProvider": "none"
+          }
+        ]
+      }
+    ],
+    "contactPhone": "02-397-1234",
+    "updatedAt": "2026-09-21T07:09:33.108Z"
+  }
+]

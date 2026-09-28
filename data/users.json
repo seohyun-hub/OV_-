@@ -1,0 +1,14 @@
+[
+  {
+    "userId": "usr_e6673be86fa5eb4b",
+    "username": "adminmkt",
+    "name": "박서현",
+    "team": "Revenue",
+    "passwordHash": "20288d79ff5d9bff331b1915d0c4595a6235c9a16fad809ac0a8f4a3d395b9e86e94a8f7ce8a79c3f30cb34dee0799dcb74444667a18ef8368821e2b580a97fc",
+    "salt": "2d7f43136a0690e3379c315d956d3e86",
+    "isAdmin": true,
+    "isActive": true,
+    "createdAt": "2026-09-02T11:30:27.551Z",
+    "updatedAt": "2026-09-02T11:30:27.551Z"
+  }
+]

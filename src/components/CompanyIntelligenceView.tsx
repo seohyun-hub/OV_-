@@ -31,11 +31,66 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
   const [showWhyOakValleyModal, setShowWhyOakValleyModal] = useState<boolean>(false);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
+  interface RecommendedBrand {
+    brand: string;
+    category: string;
+    recentActivity: string;
+    oakValleyTouchpoint: string;
+    recommendationReason: string;
+    source: string;
+  }
+
+  const [recommendedBrands, setRecommendedBrands] = useState<RecommendedBrand[]>([
+    {
+      brand: 'On Running',
+      category: 'Running & Outdoor',
+      recentActivity: '글로벌 웰니스 러닝 클럽 세션 확대 및 트레일 러닝 신발 라인업 강화',
+      oakValleyTouchpoint: '오크밸리 참나무 숲길 둘레길 & 파크로쉬 트레일 코스 연계 모닝 런 스폰서십',
+      recommendationReason: '3040 고소득 트렌디 액티브 라이프스타일 소비층 선호도 급증',
+      source: 'On Running Official IR / Newsroom',
+    },
+    {
+      brand: 'Garmin',
+      category: 'Golf & Mobility',
+      recentActivity: '프리미엄 골프 스마트워치 Marq Golf 시리즈 출시 및 생체 웰니스 데이터 플랫폼 연동',
+      oakValleyTouchpoint: '오크밸리 36홀 라운딩 코스 데이터 및 파크로쉬 웰니스 바이오 스파 룸 구축',
+      recommendationReason: '데이터 기반 골퍼 및 스마트 웰니스 케어 애호가의 핵심 타깃 접점',
+      source: 'Garmin Global Press Release',
+    },
+    {
+      brand: 'Lululemon',
+      category: 'Wellness & Lifestyle',
+      recentActivity: '마인드풀니스 & 메디테이션 야외 클래스 리트릿 전국 팝업 개최',
+      oakValleyTouchpoint: '파크로쉬 마인드풀니스 요가 홀 & 오크밸리 잔디광장 야외 웰니스 클래스',
+      recommendationReason: '2040 프리미엄 웰니스 소비층 유입 및 하이엔드 어메니티 제휴 효과 극대화',
+      source: 'Lululemon Brand Experience Report',
+    },
+    {
+      brand: 'Snow Peak',
+      category: 'Outdoor & Family',
+      recentActivity: '아웃도어 필드 클래스 및 친환경 럭셔리 캠핑 라운지 연계 프로모션',
+      oakValleyTouchpoint: '오크밸리 야외 잔디광장 럭셔리 글램핑 & 필드 팝업 브랜딩',
+      recommendationReason: '패밀리 고소득 아웃도어 캠퍼 및 프리미엄 레저 회원 유치 적합',
+      source: 'Snow Peak Korea Press',
+    },
+  ]);
+
   React.useEffect(() => {
     if (report?.companyName) {
       setCompanyInput(report.companyName);
     }
   }, [report?.companyName]);
+
+  React.useEffect(() => {
+    fetch('/api/recommended-brands')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.brands) && data.brands.length > 0) {
+          setRecommendedBrands(data.brands);
+        }
+      })
+      .catch((err) => console.warn('Failed to load dynamic recommended brands:', err));
+  }, []);
 
   const toggleSection = (sectionKey: string) => {
     setCollapsedSections((prev) => ({
@@ -44,16 +99,6 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
     }));
   };
 
-  const presetCompanies = [
-    'Nike',
-    'Snow Peak',
-    'On Running',
-    'National Geographic',
-    'Anker',
-    'Polaroid',
-    'K-SWISS',
-  ];
-
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (companyInput.trim()) {
@@ -61,7 +106,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
     }
   };
 
-  const handlePresetClick = (name: string) => {
+  const handleBrandClick = (name: string) => {
     setCompanyInput(name);
     onSearchCompany(name);
   };
@@ -120,7 +165,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
           </div>
 
           <div className="flex items-center space-x-2 text-xs text-slate-500">
-            <span className="font-mono text-slate-400">ANALYSIS ENGINE:</span>
+            <span className="font-mono text-slate-400">분석 시스템:</span>
             <span className="inline-flex items-center space-x-1 text-slate-700 font-medium">
               <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
               <span>Oak Valley Partnership AI</span>
@@ -159,22 +204,28 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
             </button>
           </div>
 
-          {/* Preset Buttons */}
+          {/* Recommended Brands (Dynamic Verified Candidates) */}
           <div className="space-y-2">
-            <span className="text-xs font-semibold text-slate-500 font-mono">추천 브랜드:</span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-[#8C7A6B] font-mono uppercase tracking-wider">
+                실시간 추천 제휴 브랜드 후보:
+              </span>
+              <span className="text-[10px] text-[#8C7A6B] font-mono">시장의 검증된 실제 기업 정보 기반</span>
+            </div>
             <div className="flex flex-wrap gap-2">
-              {presetCompanies.map((name) => (
+              {recommendedBrands.map((item, idx) => (
                 <button
-                  key={name}
+                  key={`rec-btn-${item.brand}-${idx}`}
                   type="button"
-                  onClick={() => handlePresetClick(name)}
-                  className={`px-3 py-1 text-xs border rounded-xs transition-all cursor-pointer font-medium ${
-                    report?.companyName?.toLowerCase() === name.toLowerCase()
-                      ? 'bg-slate-900 text-white border-slate-900'
-                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400 hover:bg-slate-50'
+                  onClick={() => handleBrandClick(item.brand)}
+                  className={`px-3 py-1.5 text-xs border rounded-xs transition-all cursor-pointer font-medium flex items-center space-x-1.5 ${
+                    report?.companyName?.toLowerCase() === item.brand.toLowerCase()
+                      ? 'bg-[#736152] text-white border-[#736152]'
+                      : 'bg-[#FAF8F5] text-[#2C2C2C] border-[#D4C8B8] hover:border-[#8C7A6B] hover:bg-[#EFECE6]'
                   }`}
                 >
-                  {name}
+                  <span className="font-bold">{item.brand}</span>
+                  <span className="text-[10px] opacity-75 font-mono">({item.category})</span>
                 </button>
               ))}
             </div>
@@ -183,82 +234,135 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
       </div>
 
       {/* Loading View */}
-      {loading && (
-        <div className="bg-white border border-slate-200 rounded-sm p-8 space-y-6 text-center animate-pulse">
-          <div className="inline-flex items-center space-x-2 text-slate-600 text-sm font-medium">
-            <RefreshCw className="w-4 h-4 animate-spin text-slate-900" />
+      {loading && !report && (
+        <div className="bg-[#FAF8F5] border border-[#D4C8B8] rounded-xs p-8 space-y-6 text-center animate-pulse">
+          <div className="inline-flex items-center space-x-2 text-[#736152] text-sm font-medium">
+            <RefreshCw className="w-4 h-4 animate-spin text-[#736152]" />
             <span>AI 가 기업 마케팅 히스토리 및 파트너십 기회를 정밀 분석 중입니다...</span>
           </div>
-          <div className="h-4 bg-slate-100 rounded w-2/3 mx-auto"></div>
-          <div className="h-32 bg-slate-100 rounded w-full"></div>
+          <div className="h-4 bg-[#EFECE6] rounded w-2/3 mx-auto"></div>
+          <div className="h-32 bg-[#EFECE6] rounded w-full"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="h-48 bg-slate-100 rounded"></div>
-            <div className="h-48 bg-slate-100 rounded"></div>
+            <div className="h-48 bg-[#EFECE6] rounded"></div>
+            <div className="h-48 bg-[#EFECE6] rounded"></div>
           </div>
+        </div>
+      )}
+
+      {/* Loading Top Banner when initial report is already displayed */}
+      {loading && report && (
+        <div className="bg-[#FAF8F5] border border-[#D4C8B8] rounded-xs p-3.5 flex items-center justify-center space-x-2 text-xs font-semibold text-[#736152] animate-pulse">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#736152]" />
+          <span>분석 데이터를 불러오는 중입니다...</span>
         </div>
       )}
 
       {/* Error Message View */}
-      {!loading && error && (
-        <div className="bg-white border border-rose-200 rounded-sm p-8 text-center space-y-3 shadow-2xs">
-          <div className="text-rose-600 font-semibold text-base">
+      {!loading && error && !report && (
+        <div className="bg-white border border-[#D4C8B8] rounded-xs p-8 text-center space-y-3 shadow-2xs">
+          <div className="text-amber-800 font-semibold text-base">
             {error}
           </div>
-          <p className="text-xs text-slate-500">
-            기업명을 확인하시고 다시 시도하시거나, 추천 기업을 선택해 주세요.
+          <p className="text-xs text-[#8C7A6B]">
+            기업명을 확인하시고 다시 시도하시거나 아래 추천 브랜드를 선택해 주세요.
           </p>
         </div>
       )}
 
-      {/* Empty Initial State View */}
+      {/* Error Top Banner when initial report is displayed */}
+      {!loading && error && report && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xs p-3.5 text-center space-y-1 shadow-2xs">
+          <div className="text-amber-800 font-semibold text-xs flex items-center justify-center space-x-1.5">
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <span>{error}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Empty Initial State View with Dynamic Brand Cards */}
       {!loading && !report && !error && (
-        <div className="bg-white border border-slate-200 rounded-sm p-10 text-center space-y-4 shadow-2xs">
-          <div className="w-12 h-12 bg-slate-100 text-slate-800 rounded-full flex items-center justify-center mx-auto border border-slate-200">
-            <Building2 className="w-6 h-6" />
+        <div className="space-y-6">
+          <div className="bg-white border border-[#D4C8B8] rounded-xs p-8 text-center space-y-4 shadow-2xs">
+            <div className="w-12 h-12 bg-[#FAF8F5] text-[#736152] rounded-full flex items-center justify-center mx-auto border border-[#D4C8B8]">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <div className="space-y-1.5 max-w-md mx-auto">
+              <h3 className="text-base font-bold font-serif text-[#2C2C2C]">
+                분석할 기업 또는 브랜드명을 입력해주세요
+              </h3>
+              <p className="text-xs text-[#8C7A6B] leading-relaxed font-sans">
+                검색창에 타깃 기업명(예: On Running, Garmin, Lululemon, Samsung)을 입력하시면 AI가 브랜드 아이덴티티, 최근 마케팅 동향, 오크밸리 리조트/골프 제휴 적합도를 다각도로 검증하여 보고서를 생성합니다.
+              </p>
+            </div>
           </div>
-          <div className="space-y-1.5 max-w-md mx-auto">
-            <h3 className="text-base font-bold font-serif text-slate-900">
-              분석할 기업 또는 브랜드명을 입력해주세요
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed font-sans">
-              검색창에 타깃 기업명(예: Nike, Snow Peak, On Running)을 입력하시면 AI가 브랜드 아이덴티티, 최근 마케팅 동향, 오크밸리 리조트/골프 제휴 적합도를 다각도로 검증하여 보고서를 생성합니다.
-            </p>
-          </div>
-          <div className="pt-2 flex flex-wrap justify-center gap-2">
-            {presetCompanies.slice(0, 4).map((name) => (
-              <button
-                key={name}
-                type="button"
-                onClick={() => handlePresetClick(name)}
-                className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xs text-xs font-medium text-slate-700 cursor-pointer transition-colors"
-              >
-                🏢 {name}
-              </button>
-            ))}
+
+          {/* Dynamic Candidate Brand Dossiers */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-mono font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center space-x-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#736152]" />
+              <span>추천 제휴 후보 브랜드 상세 검증 리스트</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recommendedBrands.map((b, idx) => (
+                <div key={`rec-card-${b.brand}-${idx}`} className="bg-white border border-[#D4C8B8] rounded-xs p-5 space-y-3 shadow-2xs hover:border-[#736152] transition-all">
+                  <div className="flex items-center justify-between border-b border-[#EFECE6] pb-2.5">
+                    <div>
+                      <span className="text-[10px] font-mono text-[#8C7A6B] uppercase">{b.category}</span>
+                      <h5 className="text-base font-bold text-[#2C2C2C] font-serif">{b.brand}</h5>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleBrandClick(b.brand)}
+                      className="px-3 py-1.5 bg-[#736152] text-white text-xs font-semibold rounded-xs hover:bg-[#5C4E43] transition-colors cursor-pointer flex items-center space-x-1"
+                    >
+                      <span>리서치 실행</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="space-y-2 text-xs text-[#2C2C2C]">
+                    <div>
+                      <span className="font-semibold text-[#736152] font-mono">최근 주요 활동: </span>
+                      <span>{b.recentActivity}</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-[#736152] font-mono">오크밸리·파크로쉬 접점: </span>
+                      <span>{b.oakValleyTouchpoint}</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-[#736152] font-mono">추천 이유: </span>
+                      <span>{b.recommendationReason}</span>
+                    </div>
+                    <div className="text-[10px] text-[#8C7A6B] font-mono pt-1 border-t border-[#EFECE6]">
+                      출처: {b.source}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {/* Company Report Content */}
-      {!loading && report && (
+      {report && (
         <div className="space-y-8">
           
           {/* Knowledge Base Usage Evidence Badge */}
           <KnowledgeBaseBadge metadata={report.knowledgeBaseMetadata} />
 
           {/* Header Banner */}
-          <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-sm border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="bg-[#736152] text-white p-6 sm:p-8 rounded-xs border border-[#5C4E43] flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <span className="text-xs font-mono text-blue-400">OAK VALLEY COMPANY DOSSIER</span>
-                <span className="px-2 py-0.5 text-[10px] bg-slate-800 text-slate-300 border border-slate-700 rounded-xs font-mono">
+                <span className="text-xs font-mono text-[#EFECE6]">OAK VALLEY COMPANY DOSSIER</span>
+                <span className="px-2 py-0.5 text-[10px] bg-[#5C4E43] text-white border border-[#483C33] rounded-xs font-mono">
                   {report.overview.marketPosition}
                 </span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
                 {report.overview.companyName}
               </h2>
-              <p className="text-xs text-slate-300 leading-relaxed max-w-3xl">
+              <p className="text-xs text-[#EFECE6] leading-relaxed max-w-3xl">
                 {report.overview.summary}
               </p>
             </div>
@@ -334,7 +438,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     {report.whyOakValley.reasons.map((r, idx) => (
-                      <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xs p-4 space-y-1.5">
+                      <div key={`why-reason-${r.category}-${r.title || idx}-${idx}`} className="bg-slate-50 border border-slate-200 rounded-xs p-4 space-y-1.5">
                         <div className="flex items-center space-x-2">
                           <span className="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-mono font-bold rounded-xs">
                             {r.category}
@@ -352,10 +456,10 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                 </div>
 
                 {/* Recommended Partnership Direction */}
-                <div className="bg-blue-950 text-white p-5 rounded-xs space-y-2 border border-blue-900">
+                <div className="bg-[#2C2C2C] text-white p-5 rounded-xs space-y-2 border border-[#D4C8B8]">
                   <div className="flex items-center space-x-2">
-                    <Compass className="w-4 h-4 text-blue-400" />
-                    <span className="text-xs font-mono text-blue-300 font-bold uppercase">Recommended Partnership Direction</span>
+                    <Compass className="w-4 h-4 text-[#D4C8B8]" />
+                    <span className="text-xs font-mono text-[#EFECE6] font-bold uppercase">Recommended Partnership Direction</span>
                   </div>
                   <p className="text-sm font-bold text-white leading-relaxed font-serif">
                     "{report.whyOakValley.recommendedPartnershipDirection}"
@@ -365,7 +469,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                 <div className="flex justify-end pt-2">
                   <button
                     onClick={() => setShowWhyOakValleyModal(false)}
-                    className="px-5 py-2 bg-slate-900 text-white text-xs font-semibold rounded-xs hover:bg-slate-800 transition-colors cursor-pointer"
+                    className="px-5 py-2 bg-[#736152] text-white text-xs font-semibold rounded-xs hover:bg-[#5C4E43] transition-colors cursor-pointer"
                   >
                     닫기
                   </button>
@@ -381,9 +485,9 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="px-2 py-0.5 bg-amber-400 text-slate-900 text-[10px] font-mono font-bold rounded-xs uppercase">
-                      INTELLIGENCE EVALUATION
+                      분석 결과 평가
                     </span>
-                    <span className="text-xs text-slate-400 font-mono">Evidence First Dynamic Evaluation</span>
+                    <span className="text-xs text-slate-400 font-mono">검증 데이터 기반 동적 분석</span>
                   </div>
                   <h3 className="text-xl sm:text-2xl font-serif font-bold text-white mt-1">
                     OAK VALLEY × BRAND FIT
@@ -461,9 +565,9 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                 {/* 2. Evidence First Principle Card */}
                 <div className="bg-slate-800/90 border border-slate-700 rounded-xs p-5 flex flex-col justify-between space-y-2">
                   <div className="space-y-1">
-                    <div className="flex items-center space-x-1.5 text-blue-400">
+                    <div className="flex items-center space-x-1.5 text-[#D4C8B8]">
                       <ShieldCheck className="w-4 h-4 shrink-0" />
-                      <span className="text-xs font-mono font-bold text-blue-300 uppercase">EVIDENCE FIRST POLICY</span>
+                      <span className="text-xs font-mono font-bold text-[#EFECE6] uppercase">EVIDENCE FIRST POLICY</span>
                     </div>
                     <h4 className="text-xs font-bold text-white">의사결정 지원 원칙</h4>
                   </div>
@@ -494,7 +598,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {report.oakValleyFit.factors.map((factor, idx) => (
                       <div
-                        key={factor.factorKey || idx}
+                        key={`factor-${factor.factorKey || factor.factorName || idx}-${idx}`}
                         className="bg-slate-800/90 border border-slate-700/90 rounded-xs p-5 space-y-3.5 hover:border-slate-600 transition-colors"
                       >
                         {/* Factor Header */}
@@ -503,7 +607,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                             <div className="flex items-center space-x-2">
                               <span className="text-xs font-mono text-slate-400 uppercase">{factor.factorKey || 'EVALUATION'}</span>
                               <span className="px-1.5 py-0.5 bg-blue-950 text-blue-300 border border-blue-700/60 text-[10px] font-mono font-semibold rounded-xs">
-                                VERIFIED FACTOR
+                                검증 데이터
                               </span>
                             </div>
                             <h5 className="text-base font-serif font-bold text-white mt-0.5">{factor.factorName}</h5>
@@ -569,7 +673,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {report.oakValleyFit.recommendedAssets.map((assetItem, idx) => (
-                      <div key={idx} className="bg-slate-800/90 border border-slate-700 rounded-xs p-3.5 space-y-1.5">
+                      <div key={`asset-${assetItem.asset || idx}-${idx}`} className="bg-slate-800/90 border border-slate-700 rounded-xs p-3.5 space-y-1.5">
                         <div className="flex items-center justify-between">
                           <span className="px-2 py-0.5 bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[10px] font-mono font-bold rounded-xs">
                             PRIORITY {assetItem.priority}
@@ -612,7 +716,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                   <span className="text-slate-500 font-mono block">주요 사업</span>
                   <div className="font-semibold text-slate-900 space-y-0.5">
                     {report.overview.mainBusinesses.map((b, i) => (
-                      <div key={i}>• {b}</div>
+                      <div key={`mb-${b}-${i}`}>• {b}</div>
                     ))}
                   </div>
                 </div>
@@ -621,7 +725,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                   <span className="text-slate-500 font-mono block">주요 브랜드</span>
                   <div className="font-semibold text-slate-900 space-y-0.5">
                     {report.overview.mainBrands.map((b, i) => (
-                      <div key={i}>• {b}</div>
+                      <div key={`mbr-${b}-${i}`}>• {b}</div>
                     ))}
                   </div>
                 </div>
@@ -630,7 +734,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                   <span className="text-slate-500 font-mono block">주요 상품/서비스</span>
                   <div className="font-semibold text-slate-900 space-y-0.5">
                     {report.overview.productsServices.map((p, i) => (
-                      <div key={i}>• {p}</div>
+                      <div key={`ps-${p}-${i}`}>• {p}</div>
                     ))}
                   </div>
                 </div>
@@ -668,7 +772,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                   <span className="text-xs font-mono text-slate-400 uppercase">Core Brand Keywords (5):</span>
                   <div className="flex flex-wrap gap-2">
                     {report.brandIdentity.keywords.map((kw, idx) => (
-                      <span key={idx} className="px-3 py-1 bg-slate-800 text-white font-mono text-xs font-semibold rounded-xs border border-slate-700">
+                      <span key={`kw-${kw}-${idx}`} className="px-3 py-1 bg-slate-800 text-white font-mono text-xs font-semibold rounded-xs border border-slate-700">
                         #{kw}
                       </span>
                     ))}
@@ -736,7 +840,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
               /* Timeline UI */
               <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
                 {filteredTimeline.map((item, idx) => (
-                  <div key={idx} className="relative space-y-1">
+                  <div key={item.id || `tl-${item.yearMonth}-${item.title || idx}-${idx}`} className="relative space-y-1">
                     {/* Timeline Dot */}
                     <span className="absolute -left-[23px] top-1 w-3 h-3 rounded-full bg-slate-900 border-2 border-white ring-2 ring-slate-200"></span>
                     
@@ -778,7 +882,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-semibold text-slate-500 font-mono">주요 집중 분야:</span>
                   {report.marketingDirection.focusAreas.map((area, idx) => (
-                    <span key={idx} className="px-2.5 py-0.5 bg-white text-slate-900 font-semibold border border-slate-300 rounded-xs text-xs shadow-2xs">
+                    <span key={`fa-${area}-${idx}`} className="px-2.5 py-0.5 bg-white text-slate-900 font-semibold border border-slate-300 rounded-xs text-xs shadow-2xs">
                       {area}
                     </span>
                   ))}
@@ -816,8 +920,8 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
 
             {!collapsedSections['partnershipOpportunities'] && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {(report.partnerships || []).map((p) => (
-                  <div key={p.id} className="bg-slate-50 border border-slate-200 rounded-xs p-4 sm:p-6 space-y-4 flex flex-col justify-between hover:border-slate-400 transition-all">
+                {(report.partnerships || []).map((p, idx) => (
+                  <div key={p.id || `partnership-${p.domain}-${idx}`} className="bg-slate-50 border border-slate-200 rounded-xs p-4 sm:p-6 space-y-4 flex flex-col justify-between hover:border-slate-400 transition-all">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="px-2.5 py-0.5 bg-slate-900 text-white text-xs font-mono font-medium rounded-xs">
@@ -867,7 +971,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
           <section className="bg-slate-900 text-white rounded-sm p-6 sm:p-8 space-y-6 shadow-md border border-slate-800">
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div>
-                <span className="text-xs font-mono text-blue-400 uppercase tracking-widest block">AI TOP RECOMMENDATIONS</span>
+                <span className="text-xs font-mono text-[#D4C8B8] uppercase tracking-widest block">AI TOP RECOMMENDATIONS</span>
                 <h3 className="text-xl font-serif font-bold text-white mt-0.5">6. AI 최우선 협업 제휴 추천 (Top 3)</h3>
               </div>
               <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
@@ -875,10 +979,10 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {(report.recommendations || []).map((rec, idx) => (
-                <div key={idx} className="bg-slate-800/90 border border-slate-700 rounded-xs p-5 space-y-3 flex flex-col justify-between">
+                <div key={`rec-top3-${rec.rank || idx}-${idx}`} className="bg-slate-800/90 border border-slate-700 rounded-xs p-5 space-y-3 flex flex-col justify-between">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 bg-blue-900 text-blue-200 text-xs font-mono font-bold rounded-xs border border-blue-700">
+                      <span className="px-2 py-0.5 bg-[#736152] text-white text-xs font-mono font-bold rounded-xs border border-[#5C4E43]">
                         {rec.rank}
                       </span>
                       <span className="text-[11px] text-amber-300 font-mono">{rec.badgeText}</span>
@@ -902,8 +1006,8 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
             <SourcesAndReferencesSection
               references={report.references}
               overallEvidenceLevel={report.evidenceLevel}
-              title="7. Corporate Intelligence Sources & References"
-              description={`"${report.companyName}" 기업 인텔리전스는 기업 공식 IR/보도자료(Tier 1), 컨설팅 그룹 및 주요 경제지(Tier 2~3)의 검증된 출처를 기반으로 조사되었습니다.`}
+              title="7. 기업 분석 출처 및 참고 데이터"
+              description={`"${report.companyName}" 기업 데이터는 기업 공식 IR/보도자료(1차 출처), 컨설팅 그룹 및 주요 경제지(2~3차 출처)의 검증된 출처를 기반으로 작성되었습니다.`}
             />
           )}
 
@@ -919,7 +1023,7 @@ export const CompanyIntelligenceView: React.FC<CompanyIntelligenceViewProps> = (
             <div className="flex flex-wrap gap-2">
               {(report.relatedTrends || []).map((rt, idx) => (
                 <button
-                  key={idx}
+                  key={`rt-${rt}-${idx}`}
                   onClick={() => onSearchTrend(rt)}
                   className="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold rounded-xs transition-colors flex items-center space-x-1 cursor-pointer"
                 >

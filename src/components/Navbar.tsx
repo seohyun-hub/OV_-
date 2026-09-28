@@ -13,7 +13,8 @@ import {
   Database,
   ChevronDown,
   Sparkles,
-  FileText
+  FileText,
+  Instagram
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -38,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     setBuildDropdownOpen(false);
   };
 
-  const isDiscoverActive = ['trend', 'company', 'partnertarget', 'activation'].includes(activeTab);
+  const isDiscoverActive = ['trend', 'company', 'partnertarget', 'competitor', 'activation'].includes(activeTab);
   const isBuildActive = ['partnership', 'ratecard'].includes(activeTab);
 
   return (
@@ -61,8 +62,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className="font-bold text-[#2C2C2C] text-base sm:text-lg tracking-tight font-serif whitespace-nowrap">
                     Oak Valley Marketing Target
                   </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-xs text-[10px] font-medium bg-[#EFECE6] text-[#736152] border border-[#D4C8B8] uppercase tracking-wider shrink-0">
-                    Resort Intelligence
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-xs text-[10px] font-medium bg-[#EFECE6] text-[#736152] border border-[#D4C8B8] tracking-wider shrink-0">
+                    IPARK리조트
                   </span>
                 </div>
                 <p className="text-xs text-[#786658] font-light hidden sm:block">
@@ -120,8 +121,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <TrendingUp className="w-4 h-4 text-[#8C7A6B]" />
                       <div>
-                        <div className="font-medium text-sm">산업 트렌드</div>
-                        <div className="text-[10px] text-[#8C7A6B]">시장·소비자·산업 변화</div>
+                        <div className="font-medium text-sm">트렌드 탐색</div>
+                        <div className="text-[10px] text-[#8C7A6B]">사회·소비·범산업 변화 발견</div>
                       </div>
                     </button>
 
@@ -139,9 +140,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </button>
 
                     <button
-                      onClick={() => handleTabClick('activation')}
+                      onClick={() => handleTabClick('competitor')}
                       className={`w-full flex items-center space-x-2.5 px-3 py-2 text-xs text-left transition-colors cursor-pointer ${
-                        activeTab === 'activation' ? 'bg-[#F5F2EB] text-[#2C2C2C] font-semibold' : 'text-[#5C4E43] hover:bg-[#F5F2EB]/80'
+                        activeTab === 'competitor' ? 'bg-[#F5F2EB] text-[#2C2C2C] font-semibold' : 'text-[#5C4E43] hover:bg-[#F5F2EB]/80'
                       }`}
                     >
                       <Layers className="w-4 h-4 text-[#8A8768]" />
@@ -153,7 +154,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                     <button
                       onClick={() => handleTabClick('activation')}
-                      className={`w-full flex items-center space-x-2.5 px-3 py-2 text-xs text-left transition-colors cursor-pointer text-[#5C4E43] hover:bg-[#F5F2EB]/80`}
+                      className={`w-full flex items-center space-x-2.5 px-3 py-2 text-xs text-left transition-colors cursor-pointer ${
+                        activeTab === 'activation' ? 'bg-[#F5F2EB] text-[#2C2C2C] font-semibold' : 'text-[#5C4E43] hover:bg-[#F5F2EB]/80'
+                      }`}
                     >
                       <Sparkles className="w-4 h-4 text-[#736152]" />
                       <div>
@@ -165,7 +168,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* 3. BUILD Dropdown Group */}
+              {/* 3. WEEKLY PLANNER */}
+              <button
+                id="nav-tab-weekly-planner"
+                onClick={() => handleTabClick('weeklyplanner')}
+                className={`flex items-center space-x-1.5 px-3 py-2 text-sm transition-all border-b-2 cursor-pointer ${
+                  activeTab === 'weeklyplanner'
+                    ? 'border-[#736152] text-[#2C2C2C] font-semibold bg-[#F5F2EB]'
+                    : 'border-transparent text-[#66584C] hover:text-[#2C2C2C] hover:bg-[#F5F2EB]/60 font-normal'
+                }`}
+              >
+                <Instagram className="w-4 h-4 text-[#736152]" />
+                <span>WEEKLY PLANNER</span>
+                <span className="px-1.5 py-0.2 text-[9px] font-mono font-bold bg-[#736152] text-white rounded-xs">
+                  NEW
+                </span>
+              </button>
+
+              {/* 4. BUILD Dropdown Group */}
               <div className="relative group/build" onMouseLeave={() => setBuildDropdownOpen(false)}>
                 <button
                   id="nav-tab-build"
@@ -273,7 +293,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {/* 4 Horizontal Tab Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 pt-1">
-                {/* 1. 산업 트렌드 */}
+                {/* 1. 트렌드 탐색 */}
                 <button
                   onClick={() => handleTabClick('trend')}
                   className={`p-3 text-left rounded-2xs border transition-all cursor-pointer flex flex-col justify-between group ${
@@ -284,12 +304,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   <div className="flex items-center justify-between">
                     <span className={`text-sm font-semibold ${activeTab === 'trend' ? 'text-white' : 'text-[#2C2C2C] group-hover:text-[#736152]'}`}>
-                      산업 트렌드
+                      트렌드 탐색
                     </span>
                     <TrendingUp className={`w-4 h-4 ${activeTab === 'trend' ? 'text-[#EFECE6]' : 'text-[#8C7A6B]'}`} />
                   </div>
                   <span className={`text-[11px] mt-1 line-clamp-1 ${activeTab === 'trend' ? 'text-[#EFECE6]/90' : 'text-[#786658]'}`}>
-                    시장·소비자·산업 변화
+                    사회·소비·범산업 변화 발견
                   </span>
                 </button>
 
@@ -315,6 +335,26 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 {/* 3. 동종업계 트렌드 */}
                 <button
+                  onClick={() => handleTabClick('competitor')}
+                  className={`p-3 text-left rounded-2xs border transition-all cursor-pointer flex flex-col justify-between group ${
+                    activeTab === 'competitor'
+                      ? 'bg-[#736152] text-white border-[#5C4E43] shadow-xs'
+                      : 'bg-white hover:bg-[#F5F2EB] text-[#2C2C2C] border-[#E8E4DC] hover:border-[#736152]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm font-semibold ${activeTab === 'competitor' ? 'text-white' : 'text-[#2C2C2C] group-hover:text-[#736152]'}`}>
+                      동종업계 트렌드
+                    </span>
+                    <Layers className={`w-4 h-4 ${activeTab === 'competitor' ? 'text-[#EFECE6]' : 'text-[#8C7A6B]'}`} />
+                  </div>
+                  <span className={`text-[11px] mt-1 line-clamp-1 ${activeTab === 'competitor' ? 'text-[#EFECE6]/90' : 'text-[#786658]'}`}>
+                    국내외 호텔·리조트 현황 및 프로모션
+                  </span>
+                </button>
+
+                {/* 4. 행사·팝업 */}
+                <button
                   onClick={() => handleTabClick('activation')}
                   className={`p-3 text-left rounded-2xs border transition-all cursor-pointer flex flex-col justify-between group ${
                     activeTab === 'activation'
@@ -324,27 +364,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   <div className="flex items-center justify-between">
                     <span className={`text-sm font-semibold ${activeTab === 'activation' ? 'text-white' : 'text-[#2C2C2C] group-hover:text-[#736152]'}`}>
-                      동종업계 트렌드
-                    </span>
-                    <Layers className={`w-4 h-4 ${activeTab === 'activation' ? 'text-[#EFECE6]' : 'text-[#8C7A6B]'}`} />
-                  </div>
-                  <span className={`text-[11px] mt-1 line-clamp-1 ${activeTab === 'activation' ? 'text-[#EFECE6]/90' : 'text-[#786658]'}`}>
-                    국내외 호텔·리조트 현황 및 프로모션
-                  </span>
-                </button>
-
-                {/* 4. 행사·팝업 */}
-                <button
-                  onClick={() => handleTabClick('activation')}
-                  className={`p-3 text-left rounded-2xs border transition-all cursor-pointer flex flex-col justify-between group bg-white hover:bg-[#F5F2EB] text-[#2C2C2C] border-[#E8E4DC] hover:border-[#736152]`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-[#2C2C2C] group-hover:text-[#736152]">
                       행사·팝업
                     </span>
-                    <Sparkles className="w-4 h-4 text-[#736152]" />
+                    <Sparkles className={`w-4 h-4 ${activeTab === 'activation' ? 'text-[#EFECE6]' : 'text-[#736152]'}`} />
                   </div>
-                  <span className="text-[11px] mt-1 text-[#786658] line-clamp-1">
+                  <span className={`text-[11px] mt-1 line-clamp-1 ${activeTab === 'activation' ? 'text-[#EFECE6]/90' : 'text-[#786658]'}`}>
                     팝업·전시·박람회·브랜드 행사
                   </span>
                 </button>
@@ -372,6 +396,24 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
+            {/* 2. WEEKLY PLANNER */}
+            <div>
+              <button
+                onClick={() => handleTabClick('weeklyplanner')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xs text-sm transition-colors ${
+                  activeTab === 'weeklyplanner' ? 'bg-[#736152] text-[#FAF8F5] font-medium' : 'text-[#2C2C2C] hover:bg-[#EFECE6]'
+                }`}
+              >
+                <div className="flex items-center space-x-2.5">
+                  <Instagram className="w-4 h-4 text-[#736152]" />
+                  <span>WEEKLY CONTENT PLANNER</span>
+                </div>
+                <span className="text-[10px] font-mono font-bold bg-[#736152] text-white px-1.5 py-0.2 rounded-xs">
+                  NEW
+                </span>
+              </button>
+            </div>
+
             {/* 2. DISCOVER GROUP */}
             <div className="space-y-1">
               <div className="text-[10px] font-mono font-medium text-[#8C7A6B] uppercase tracking-wider px-3 pt-1">
@@ -385,9 +427,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <div className="flex items-center space-x-2.5">
                   <TrendingUp className="w-3.5 h-3.5" />
-                  <span>산업 트렌드</span>
+                  <span>트렌드 탐색</span>
                 </div>
-                <span className="text-[10px] opacity-80">시장·소비자·산업 변화</span>
+                <span className="text-[10px] opacity-80">사회·소비·범산업 변화 발견</span>
               </button>
               <button
                 onClick={() => handleTabClick('company')}
@@ -402,9 +444,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="text-[10px] opacity-80">기업·브랜드 현황 및 제휴 기회</span>
               </button>
               <button
-                onClick={() => handleTabClick('activation')}
+                onClick={() => handleTabClick('competitor')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xs text-xs transition-colors ${
-                  activeTab === 'activation' ? 'bg-[#736152] text-white font-semibold' : 'text-[#5C4E43] hover:bg-[#EFECE6]/60'
+                  activeTab === 'competitor' ? 'bg-[#736152] text-white font-semibold' : 'text-[#5C4E43] hover:bg-[#EFECE6]/60'
                 }`}
               >
                 <div className="flex items-center space-x-2.5">
@@ -415,7 +457,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
               <button
                 onClick={() => handleTabClick('activation')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xs text-xs transition-colors text-[#5C4E43] hover:bg-[#EFECE6]/60`}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xs text-xs transition-colors ${
+                  activeTab === 'activation' ? 'bg-[#736152] text-white font-semibold' : 'text-[#5C4E43] hover:bg-[#EFECE6]/60'
+                }`}
               >
                 <div className="flex items-center space-x-2.5">
                   <Sparkles className="w-3.5 h-3.5 text-[#736152]" />

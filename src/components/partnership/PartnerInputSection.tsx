@@ -92,15 +92,15 @@ export const PartnerInputSection: React.FC<PartnerInputSectionProps> = ({
         
         {/* Company Intelligence Auto-Reflected Banner */}
         {activeCompanyReport && (
-          <div className="bg-blue-50/80 border border-blue-200 rounded-xs p-4 text-xs space-y-2">
-            <div className="flex items-center justify-between border-b border-blue-200/60 pb-2">
+          <div className="bg-[#FAF8F5] border border-[#D4C8B8] rounded-xs p-4 text-xs space-y-2">
+            <div className="flex items-center justify-between border-b border-[#E5DDD3] pb-2">
               <div className="flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-blue-600" />
-                <span className="font-bold text-blue-900 font-mono">
-                  COMPANY INTELLIGENCE AUTO-LINKED: [{activeCompanyReport.companyName}]
+                <Sparkles className="w-4 h-4 text-[#736152]" />
+                <span className="font-bold text-[#2C2C2C]">
+                  기업 분석 데이터 자동 연동: [{activeCompanyReport.companyName}]
                 </span>
               </div>
-              <span className="px-2 py-0.5 bg-blue-900 text-white font-mono text-[10px] rounded-xs font-bold">
+              <span className="px-2 py-0.5 bg-[#736152] text-white font-mono text-[10px] rounded-xs font-bold">
                 연동 완료
               </span>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus,
   Trash2,
@@ -15,7 +15,10 @@ import {
   ChevronDown,
   ChevronUp,
   RefreshCw,
-  FolderOpen
+  FolderOpen,
+  Database,
+  Search,
+  FileText
 } from 'lucide-react';
 import { DealCalculationRow, OakValleyBarterAsset } from '../../types';
 import { BarterAssetManager } from './BarterAssetManager';
@@ -39,6 +42,59 @@ export const DealCalculationTable: React.FC<DealCalculationTableProps> = ({
   const [editFormData, setEditFormData] = useState<DealCalculationRow | null>(null);
   const [showAssetManager, setShowAssetManager] = useState<boolean>(false);
   const [showAssetPicker, setShowAssetPicker] = useState<boolean>(false);
+
+  // Knowledge Base Pricing Lookup State
+  const [showKbPicker, setShowKbPicker] = useState<boolean>(false);
+  const [kbSearchQuery, setKbSearchQuery] = useState<string>('');
+  const [kbLookupResults, setKbLookupResults] = useState<any[]>([]);
+  const [loadingKbLookup, setLoadingKbLookup] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (showKbPicker) {
+      fetchKbLookup(kbSearchQuery);
+    }
+  }, [showKbPicker, kbSearchQuery]);
+
+  const fetchKbLookup = async (queryStr: string) => {
+    try {
+      setLoadingKbLookup(true);
+      const res = await fetch('/api/knowledge/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: queryStr }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setKbLookupResults(data.results || []);
+      }
+    } catch (e) {
+      console.error('Error looking up KB pricing:', e);
+    } finally {
+      setLoadingKbLookup(false);
+    }
+  };
+
+  const handleSelectKbItem = (item: any) => {
+    const normalPrice = item.unitPrice || 0;
+    const newRow: DealCalculationRow = {
+      id: `kb-row-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      date: '2026.08 ~ 2026.12',
+      location: item.category || '오크밸리 시설/단가표',
+      itemName: item.itemName || item.title,
+      quantityPeriod: item.version || 'v1.0',
+      quantityNum: 1,
+      normalPrice: normalPrice,
+      appliedPrice: normalPrice,
+      totalNormal: normalPrice,
+      totalApplied: normalPrice,
+      discountRate: 0,
+      discountAmount: 0,
+      notes: `[근거자료] ${item.title} (${item.referenceLocation || '사내 Knowledge Base'})`,
+    };
+
+    onUpdateRows([...rows, newRow]);
+    setShowKbPicker(false);
+  };
 
   // Totals calculations
   const totalNormalValue = rows.reduce((acc, r) => acc + (r.normalPrice * r.quantityNum), 0);
@@ -217,7 +273,10 @@ export const DealCalculationTable: React.FC<DealCalculationTableProps> = ({
           {/* Pick from standard ratecard */}
           <div className="relative">
             <button
-              onClick={() => setShowAssetPicker(!showAssetPicker)}
+              onClick={() => {
+                setShowAssetPicker(!showAssetPicker);
+                setShowKbPicker(false);
+              }}
               className="px-3.5 py-2 bg-[#FAF8F5] hover:bg-[#EFECE6] text-[#2C2C2C] border border-[#D4C8B8] rounded-xs text-xs font-semibold flex items-center space-x-1.5 cursor-pointer transition-colors shadow-2xs"
             >
               <FolderOpen className="w-3.5 h-3.5 text-[#736152]" />
@@ -261,6 +320,90 @@ export const DealCalculationTable: React.FC<DealCalculationTableProps> = ({
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Pick from Knowledge Base */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowKbPicker(!showKbPicker);
+                setShowAssetPicker(false);
+              }}
+              className="px-3.5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white border border-emerald-900 rounded-xs text-xs font-bold flex items-center space-x-1.5 cursor-pointer transition-colors shadow-2xs"
+            >
+              <Database className="w-3.5 h-3.5 text-emerald-200" />
+              <span>사내 자료에서 불러오기</span>
+              <ChevronDown className={`w-3 h-3 text-emerald-200 transition-transform ${showKbPicker ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* KB Picker Dropdown */}
+            {showKbPicker && (
+              <div className="absolute right-0 top-full mt-1.5 w-80 sm:w-96 max-h-96 overflow-y-auto bg-white border border-slate-300 rounded-xs shadow-xl z-50 p-2 space-y-2">
+                <div className="p-2 border-b border-slate-200 flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-900 flex items-center space-x-1">
+                    <FileText className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Knowledge Base 가격/단가 검색</span>
+                  </span>
+                  <button
+                    onClick={() => setShowKbPicker(false)}
+                    className="text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* Search Input */}
+                <div className="relative px-1">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={kbSearchQuery}
+                    onChange={(e) => setKbSearchQuery(e.target.value)}
+                    placeholder="객실, 골프, 대관료, 식음 등 검색..."
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xs focus:outline-none focus:border-emerald-700 text-slate-900"
+                  />
+                </div>
+
+                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                  {loadingKbLookup ? (
+                    <div className="p-4 text-center text-xs text-slate-500 flex items-center justify-center space-x-2">
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                      <span>확인된 가격 검색 중...</span>
+                    </div>
+                  ) : kbLookupResults.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-slate-500 space-y-1">
+                      <p className="font-bold text-slate-700">확인된 사내 자료 가격 항목이 없습니다.</p>
+                      <p className="text-[11px] text-slate-400">Knowledge Base에서 회사소개서/Rate Card/단가표를 등록해 주세요.</p>
+                    </div>
+                  ) : (
+                    kbLookupResults.map((item, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => handleSelectKbItem(item)}
+                        className="p-2.5 hover:bg-emerald-50 cursor-pointer transition-colors text-left space-y-1 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-800">
+                            {item.itemName}
+                          </span>
+                          <span className="text-[11px] font-mono font-bold text-emerald-700">
+                            {item.unitPrice ? `₩${item.unitPrice.toLocaleString()}` : '확인값 있음'}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-mono">
+                          <span className="font-semibold text-slate-700">자료명:</span> {item.title}
+                          <br />
+                          <span className="font-semibold text-slate-700">근거위치:</span> {item.referenceLocation}
+                        </div>
+                        <div className="text-[10px] text-slate-600 bg-slate-50 p-1 rounded-xs border border-slate-100 line-clamp-2">
+                          <span className="font-bold text-emerald-800">확인 값:</span> {item.confirmedValue}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}

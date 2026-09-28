@@ -35,6 +35,62 @@ export function calculateActivationStatus(
 }
 
 /**
+ * Sorts activations strictly by recency:
+ * 1. ONGOING (진행 중)
+ * 2. UPCOMING (가장 가까운 예정일 순 - startDate ASC)
+ * 3. ENDED (가장 최근에 종료된 순 - endDate DESC)
+ */
+export function sortActivationsByRecency(
+  items: ActivationItem[],
+  referenceDateStr: string = getTodayDateStr()
+): ActivationItem[] {
+  const ref = normalizeDateStr(referenceDateStr);
+
+  return [...items].sort((a, b) => {
+    const statusA = calculateActivationStatus(a.startDate, a.endDate, referenceDateStr);
+    const statusB = calculateActivationStatus(b.startDate, b.endDate, referenceDateStr);
+
+    const priorityOrder: Record<ActivationStatus, number> = {
+      ONGOING: 1,
+      UPCOMING: 2,
+      ENDED: 3,
+    };
+
+    const prioA = priorityOrder[statusA] || 4;
+    const prioB = priorityOrder[statusB] || 4;
+
+    if (prioA !== prioB) {
+      return prioA - prioB;
+    }
+
+    const startA = normalizeDateStr(a.startDate);
+    const startB = normalizeDateStr(b.startDate);
+    const endA = normalizeDateStr(a.endDate || a.startDate);
+    const endB = normalizeDateStr(b.endDate || b.startDate);
+
+    // If both are ONGOING: prioritize sooner end or later end
+    if (statusA === 'ONGOING') {
+      if (endA !== endB) return endA.localeCompare(endB);
+      return startA.localeCompare(startB);
+    }
+
+    // If both are UPCOMING: closest start date comes FIRST (ascending)
+    if (statusA === 'UPCOMING') {
+      if (startA !== startB) return startA.localeCompare(startB);
+      return endA.localeCompare(endB);
+    }
+
+    // If both are ENDED: most recently ended comes FIRST (descending)
+    if (statusA === 'ENDED') {
+      if (endA !== endB) return endB.localeCompare(endA);
+      return startB.localeCompare(startA);
+    }
+
+    return 0;
+  });
+}
+
+/**
  * Normalizes date strings to YYYY-MM-DD with zero padding for month and day
  */
 export function normalizeDateStr(dateStr: string): string {

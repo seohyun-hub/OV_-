@@ -19,7 +19,9 @@ import {
   ArrowRight,
   Info,
   Server,
-  X
+  X,
+  ExternalLink,
+  Download
 } from 'lucide-react';
 
 interface KnowledgeBaseViewProps {
@@ -821,9 +823,19 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({ onDocument
                       </button>
                     </td>
 
-                    {/* Actions: View Text / Replace / Delete */}
+                    {/* Actions: View Text / Open File / Replace / Delete */}
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end space-x-1">
+                        <a
+                          href={`/api/knowledge/documents/${doc.id}/file`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2 py-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xs transition-colors cursor-pointer flex items-center space-x-1"
+                          title="원본 파일 열기"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+
                         <button
                           onClick={() => setViewingDoc(doc)}
                           className="px-2 py-1 text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xs transition-colors cursor-pointer"
@@ -865,7 +877,7 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({ onDocument
         <div className="flex items-center space-x-2">
           <Server className="w-5 h-5 text-emerald-400 shrink-0" />
           <h3 className="text-sm font-bold text-white font-serif">
-            Knowledge Base AI Engine & Technical Architecture Notice
+            지식 기반 AI 분석 및 데이터 관리 안내
           </h3>
         </div>
 
@@ -873,26 +885,26 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({ onDocument
           <div className="space-y-1.5 p-3 bg-slate-800/60 rounded-xs border border-slate-700">
             <div className="font-bold text-emerald-300 flex items-center space-x-1">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>현재 환경 실제 동작 시스템 (Current Operational Stack):</span>
+              <span>현재 환경 실제 동작 시스템:</span>
             </div>
             <p className="leading-relaxed">
-              업로드된 문서(PDF/PPT/Word/Excel)는 서버 인메모리 및 로컬 스토리지(`data/knowledge_base.json`)에 지속 저장되며,
-              Gemini API의 Multimodal Document Parser를 통해 텍스트, 구조화된 표, 스펙, 단가표로 원문 정밀 추출됩니다.
-              이후 모든 Trend/Company/Activation/Barter AI 요청 시 최우선(1순위) 컨텍스트로 실시간 주입되어 가공 없이 사실 기반 AI 분석을 수행합니다.
+              업로드된 문서(PDF/PPT/Word/Excel)는 로컬 저장소에 지속 저장되며,
+              스마트 문서 분석 시스템을 통해 텍스트, 구조화된 표, 스펙, 단가표로 원문 정밀 추출됩니다.
+              이후 모든 제휴·트렌드 AI 요청 시 최우선 컨텍스트로 실시간 주입되어 사실 기반 AI 분석을 수행합니다.
             </p>
           </div>
 
           <div className="space-y-1.5 p-3 bg-slate-800/60 rounded-xs border border-slate-700">
             <div className="font-bold text-blue-300 flex items-center space-x-1">
               <Info className="w-3.5 h-3.5 text-blue-400" />
-              <span>향후 대용량 아카이브 엔터프라이즈 확장 가이드 (Production Scale):</span>
+              <span>대용량 아카이브 확장 안내:</span>
             </div>
             <p className="leading-relaxed">
               수백 건의 리조트 도면, 고용량 스캔 PDF, 영상/이미지 아카이브로 구축 규모 확장 시:
               <br />
-              1) <strong>Google Cloud Storage (GCS)</strong> 버킷 연동
+              1) <strong>클라우드 스토리지</strong> 버킷 연동
               <br />
-              2) <strong>Gemini File API / Vertex AI Search Vector DB (Pinecone/PGVector)</strong>를 통한 청크 분할 및 시맨틱 임베딩 검색 구축 권장.
+              2) <strong>통합 데이터베이스 아카이브 검색 연동</strong>을 통한 청크 분할 및 시맨틱 임베딩 검색 적용.
             </p>
           </div>
         </div>
@@ -936,7 +948,26 @@ export const KnowledgeBaseView: React.FC<KnowledgeBaseViewProps> = ({ onDocument
               </div>
             </div>
 
-            <div className="p-3 border-t border-slate-200 bg-slate-100 text-right">
+            <div className="p-3 border-t border-slate-200 bg-slate-100 flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <a
+                  href={`/api/knowledge/documents/${viewingDoc.id}/file`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xs flex items-center space-x-1 transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>원본 파일 열기</span>
+                </a>
+                <a
+                  href={`/api/knowledge/documents/${viewingDoc.id}/download`}
+                  download
+                  className="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold rounded-xs flex items-center space-x-1 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>다운로드</span>
+                </a>
+              </div>
               <button
                 onClick={() => setViewingDoc(null)}
                 className="px-4 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-xs hover:bg-slate-800 cursor-pointer"

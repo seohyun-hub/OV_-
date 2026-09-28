@@ -166,13 +166,13 @@ export const PackageComparison: React.FC<PackageComparisonProps> = ({
   const getPackageBadgeStyle = (type: string) => {
     switch (type) {
       case 'SAFE':
-        return 'bg-slate-900 text-white';
+        return 'bg-[#2C2C2C] text-white';
       case 'BALANCED':
-        return 'bg-blue-900 text-white border border-blue-700';
+        return 'bg-[#736152] text-white border border-[#5C4E43]';
       case 'IMPACT':
-        return 'bg-purple-900 text-white';
+        return 'bg-[#5C4E43] text-white';
       default:
-        return 'bg-slate-800 text-white';
+        return 'bg-[#2C2C2C] text-white';
     }
   };
 
@@ -180,16 +180,16 @@ export const PackageComparison: React.FC<PackageComparisonProps> = ({
     <div className="space-y-8">
       
       {/* SECTION HEADER */}
-      <div className="bg-slate-900 text-white p-4 sm:p-5 rounded-sm shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#2C2C2C] text-white p-4 sm:p-5 rounded-sm shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 bg-blue-600 text-white flex items-center justify-center rounded-xs font-bold shrink-0">
+          <div className="w-9 h-9 bg-[#736152] text-white flex items-center justify-center rounded-xs font-bold shrink-0">
             <Layers className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-base sm:text-lg font-bold font-serif tracking-tight text-white">
               5 & 6. AI PACKAGE MATCHING & MEDIA DETAIL
             </h2>
-            <p className="text-xs text-slate-300 font-sans mt-0.5">
+            <p className="text-xs text-[#EFECE6] font-sans mt-0.5">
               SAFE / BALANCED / IMPACT 3가지 패키지안 비교 및 커스텀 미디어 재구성
             </p>
           </div>
@@ -198,7 +198,7 @@ export const PackageComparison: React.FC<PackageComparisonProps> = ({
         {/* Excel Export Button */}
         <button
           onClick={handleExcelExport}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xs transition-colors flex items-center space-x-2 shadow-sm cursor-pointer self-start sm:self-auto"
+          className="px-4 py-2 bg-[#736152] hover:bg-[#5C4E43] text-white text-xs font-bold rounded-xs transition-colors flex items-center space-x-2 shadow-sm cursor-pointer self-start sm:self-auto"
         >
           <FileSpreadsheet className="w-4 h-4" />
           <span>Excel 다운로드 (.xlsx)</span>

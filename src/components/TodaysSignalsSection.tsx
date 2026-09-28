@@ -11,6 +11,8 @@ import {
   CheckCircle2,
   Tag,
   Layers,
+  Instagram,
+  Calendar,
 } from 'lucide-react';
 import { TodaysSignalsData, ActiveTab } from '../types';
 import { SourcesAndReferencesSection } from './SourcesAndReferencesSection';
@@ -213,6 +215,38 @@ export const TodaysSignalsSection: React.FC<TodaysSignalsSectionProps> = ({
       {/* SIGNALS CONTENT */}
       {!loading && !error && signals && (
         <div className="space-y-10">
+
+          {/* Weekly Content Planner Banner */}
+          {onNavigateTab && (
+            <div className="bg-gradient-to-r from-[#FAF8F5] via-[#F5F2EB] to-[#EFECE6] border border-[#D4C8B8] rounded-xs p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+              <div className="flex items-start sm:items-center space-x-3.5">
+                <div className="p-2.5 bg-[#736152] text-white rounded-xs shrink-0 shadow-2xs">
+                  <Instagram className="w-5 h-5 text-white" />
+                </div>
+                <div className="space-y-0.5">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-bold bg-[#736152] text-white px-2 py-0.2 rounded-xs">
+                      주간 콘텐츠 기획
+                    </span>
+                    <span className="text-xs font-bold font-serif text-[#2C2C2C]">
+                      Weekly Content Planner 바로가기
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#786658]">
+                    매일 축적된 Daily Signals를 주간 단위로 묶어 <strong>Oak Valley / PARK ROCHE 공식 Instagram 완성형 기획안 및 릴스 대본</strong>으로 자동 변환합니다.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => onNavigateTab('weeklyplanner')}
+                className="inline-flex items-center justify-center space-x-1.5 px-4 py-2 bg-[#736152] hover:bg-[#5C4E43] text-white text-xs font-bold rounded-xs transition-colors shrink-0 cursor-pointer shadow-2xs"
+              >
+                <span>주간 기획안 열기</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
           
           {/* ① MARKET SIGNALS */}
           <div className="space-y-4">
@@ -279,7 +313,7 @@ export const TodaysSignalsSection: React.FC<TodaysSignalsSectionProps> = ({
 
                   <div className="pt-3 border-t border-slate-200/80">
                     <button
-                      onClick={() => onSearchTrend(item.trend)}
+                      onClick={() => onSearchTrend(item.trend, { title: item.trend, whyNotable: item.summary, oakValleyAngle: item.oakValleyFit, category: '오늘의 신호' })}
                       className="w-full py-2 bg-white hover:bg-slate-900 hover:text-white border border-slate-300 text-slate-900 text-xs font-bold rounded-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
                     >
                       <span>자세히 분석</span>
@@ -348,7 +382,7 @@ export const TodaysSignalsSection: React.FC<TodaysSignalsSectionProps> = ({
 
                   <div className="pt-3 border-t border-slate-200/80">
                     <button
-                      onClick={() => onSearchCompany(item.brand)}
+                      onClick={() => onSearchCompany(item.brand, { brandName: item.brand, recentActivity: item.recentMovement, whyNotable: item.whyWatch, partnershipAngle: item.oakValleyFit })}
                       className="w-full py-2 bg-white hover:bg-slate-900 hover:text-white border border-slate-300 text-slate-900 text-xs font-bold rounded-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
                     >
                       <span>기업 분석</span>
@@ -554,7 +588,7 @@ export const TodaysSignalsSection: React.FC<TodaysSignalsSectionProps> = ({
                 </div>
 
                 <button
-                  onClick={() => onSearchTrend(signals.trendSignals[0]?.trend || '2026 웰니스 트렌드')}
+                  onClick={() => onSearchTrend(signals.trendSignals[0]?.trend || '2026 웰니스 트렌드', { title: signals.trendSignals[0]?.trend, whyNotable: signals.trendSignals[0]?.summary, oakValleyAngle: signals.trendSignals[0]?.oakValleyFit })}
                   className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-900 text-xs font-bold rounded-xs transition-colors shrink-0 cursor-pointer self-start sm:self-auto shadow-2xs"
                 >
                   관련 트렌드 Deep Research &rarr;

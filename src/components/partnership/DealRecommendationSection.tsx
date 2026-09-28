@@ -11,23 +11,23 @@ import {
   Download,
   CheckCircle2,
   AlertTriangle,
-  Scale
+  Scale,
+  Calculator
 } from 'lucide-react';
-import { DealNegotiationCriteria } from '../../types';
 
 interface DealRecommendationSectionProps {
   companyName: string;
-  oakValleyDiscountValue: number; // 당사 할인 지원가치 (STEP 1)
-  partnerCash: number; // 파트너 현금 (STEP 2)
+  oakValleyDiscountValue: number; // 당사 할인 지원가치 (STEP 1: 정상가 총액 - 제휴가 총액)
+  partnerCash: number; // 파트너 현금 지원금 (STEP 2)
   partnerInKindRetail: number; // 파트너 현물 소비자가 (STEP 2)
-  inKindRecognitionRate: number; // 현물 인정률 (STEP 2)
+  inKindRecognitionRate: number; // 현물 인정률 % (STEP 2)
   partnerInKindRecognized: number; // 현물 실질 인정가 (STEP 2)
-  partnerOtherSupport: number; // 기타 지원가치 (STEP 2)
-  actualVariableCost: number; // 추가 실제비용 (STEP 3)
-  opportunityCost: number; // 기회비용 (STEP 3)
-  additionalOperatingCost: number; // 추가 제작/운영비 (STEP 3)
-  expectedAdditionalRevenue: number; // 예상 추가매출 (STEP 3)
-  targetSurplusRate: number; // 목표 추가가치율 (STEP 3, e.g. 20%)
+  partnerOtherSupport: number; // 기타 실제 지원가치 (STEP 2)
+  actualVariableCost: number; // 추가 실비용 (STEP 3 수동입력)
+  opportunityCost: number; // Opportunity Cost (STEP 3 수동입력)
+  additionalOperatingCost: number; // 현장 설치 및 운영비 (STEP 3 수동입력)
+  expectedAdditionalRevenue: number; // 예상 추가매출 (STEP 3 수동입력)
+  targetSurplusRate: number; // 목표 추가가치율 % (STEP 3, e.g. 20%)
   onOpenProposalModal: () => void;
   onExportTable: () => void;
 }
@@ -50,51 +50,68 @@ export const DealRecommendationSection: React.FC<DealRecommendationSectionProps>
 }) => {
   const [copied, setCopied] = useState<boolean>(false);
 
-  // 1. Current Partner Effective Value
-  const currentPartnerEffective = partnerCash + partnerInKindRecognized + partnerOtherSupport;
+  // 1. 당사 부담가치 = 할인 지원가치 + 추가 실비용 + Opportunity Cost + 현장 설치 및 운영비
+  const ourBurdenValue = oakValleyDiscountValue + actualVariableCost + opportunityCost + additionalOperatingCost;
 
-  // 2. MINIMUM (손실 방지를 위한 최소 조건)
-  // 최소 조건 = 실제 지출 원가 + 기회비용 + 운영비 (원가 100% 회수선)
-  // 단, 당사 할인 지원가치가 존재할 경우 최소 30%의 원가 상당액 회수를 최소선으로 설정
-  const minDirectCosts = actualVariableCost + opportunityCost + additionalOperatingCost;
-  const minRequiredValue = Math.max(minDirectCosts, Math.round(oakValleyDiscountValue * 0.35));
-  const minInKindRetailEquivalent = inKindRecognitionRate > 0
-    ? Math.round(minRequiredValue / (inKindRecognitionRate / 100))
-    : minRequiredValue;
+  // 2. 파트너 실질 제공가치 = 현금 지원금 + 현물 실질 인정가 + 기타 실제 지원가치
+  const partnerEffectiveValue = partnerCash + partnerInKindRecognized + partnerOtherSupport;
 
-  // 3. TARGET (목표 수익을 반영한 권장 조건)
-  // 권장 조건 = 당사 총 할인 지원가치 * (1 + targetSurplusRate / 100)
-  const targetRequiredValue = Math.round(oakValleyDiscountValue * (1 + targetSurplusRate / 100));
-  const targetInKindRetailEquivalent = inKindRecognitionRate > 0
-    ? Math.round(targetRequiredValue / (inKindRecognitionRate / 100))
-    : targetRequiredValue;
+  // 3. 예상 순효익 = 파트너 실질 제공가치 + 예상 추가매출 - 당사 부담가치
+  const expectedNetBenefit = partnerEffectiveValue + expectedAdditionalRevenue - ourBurdenValue;
 
-  // 4. Achievement & Status vs Criteria
-  const isMeetingMinimum = currentPartnerEffective >= minRequiredValue;
-  const achievementRateVsTarget = targetRequiredValue > 0
-    ? (currentPartnerEffective / targetRequiredValue) * 100
-    : 100;
-  const gapToTarget = targetRequiredValue - currentPartnerEffective;
+  // 4. MINIMUM 필요가치 = 당사 부담가치
+  const minRequiredValue = ourBurdenValue;
 
-  // 5. Code-calculated Recommendation Summary Text (Strictly deterministic math figures)
-  const discountInTenThousand = Math.round(oakValleyDiscountValue / 10000);
-  const targetInTenThousand = Math.round(targetRequiredValue / 10000);
-  const inKindRetailInTenThousand = Math.round(targetInKindRetailEquivalent / 10000);
-  const minInTenThousand = Math.round(minRequiredValue / 10000);
+  // 5. TARGET 필요가치 = 당사 부담가치 × (1 + 목표 추가가치율 / 100)
+  const targetRequiredValue = Math.round(ourBurdenValue * (1 + targetSurplusRate / 100));
 
-  const formatManWon = (num: number) => {
-    if (num >= 10000) {
-      const eok = Math.floor(num / 10000);
-      const man = num % 10000;
-      return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+  // 6. CURRENT OFFER = 파트너 실질 제공가치
+  const currentOffer = partnerEffectiveValue;
+
+  // 7. 부족/초과 금액 = CURRENT OFFER - TARGET 필요가치
+  const gapAmount = currentOffer - targetRequiredValue;
+
+  // Helper for formatting Korean Money (e.g. 170만원, 1억 2,000만원)
+  const formatKoreanMoney = (num: number): string => {
+    if (isNaN(num) || num === 0) return '0원';
+    const abs = Math.abs(num);
+    const isNeg = num < 0;
+
+    let text = '';
+    if (abs >= 100000000) {
+      const eok = Math.floor(abs / 100000000);
+      const man = Math.round((abs % 100000000) / 10000);
+      text = man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+    } else if (abs >= 10000) {
+      const man = Math.round(abs / 10000);
+      text = `${man.toLocaleString()}만원`;
+    } else {
+      text = `${abs.toLocaleString()}원`;
     }
-    return `${num.toLocaleString()}만원`;
+
+    return isNeg ? `-${text}` : text;
   };
 
-  const calculatedSummary = `현재 당사 지원가치는 ${formatManWon(discountInTenThousand)}이며, 목표 추가가치율 ${targetSurplusRate}% 적용 시 파트너 실질 제공가치는 최소 ${formatManWon(targetInTenThousand)}(현물 인정률 ${inKindRecognitionRate}% 기준 소비자가 약 ${formatManWon(inKindRetailInTenThousand)} 상당 또는 현금 ${formatManWon(targetInTenThousand)} 이상)을 기준으로 협의하는 것이 적정합니다. 손실 방지를 위한 절대 최소 한도는 ${formatManWon(minInTenThousand)}입니다.`;
+  // Helper for generating in-kind retail equivalent gap text
+  const gapAbs = Math.abs(gapAmount);
+  const gapShortfallMan = formatKoreanMoney(gapAbs);
+  const inKindRetailShortageEquivalent = inKindRecognitionRate > 0
+    ? Math.round(gapAbs / (inKindRecognitionRate / 100))
+    : gapAbs;
+  const inKindRetailShortageMan = formatKoreanMoney(inKindRetailShortageEquivalent);
+
+  // 8. Generate Executive Recommendation Statement (2-3 lines based 100% on calculations)
+  let recommendationText = '';
+  if (gapAmount < 0) {
+    recommendationText = `현재 파트너 제공가치는 목표 기준 대비 ${gapShortfallMan} 부족합니다. 현금 기준 최소 ${gapShortfallMan} 추가 또는 현물 인정률 ${inKindRecognitionRate}% 기준 약 ${inKindRetailShortageMan} 상당의 추가 현물 확보가 필요합니다.`;
+  } else if (gapAmount > 0) {
+    recommendationText = `현재 파트너 제공가치는 목표 기준 대비 ${gapShortfallMan} 초과하여 우수합니다. 현금 ${formatKoreanMoney(partnerCash)} 및 현물 인정률 ${inKindRecognitionRate}% 기준 제휴 조건을 승인하여 계약을 진행할 수 있습니다.`;
+  } else {
+    recommendationText = `현재 파트너 제공가치가 목표 기준과 정확히 일치합니다. 현금 ${formatKoreanMoney(partnerCash)} 및 현물 인정률 ${inKindRecognitionRate}% 기준 협찬 조건으로 제휴 계약 체결을 추천합니다.`;
+  }
 
   const handleCopyText = () => {
-    navigator.clipboard.writeText(calculatedSummary);
+    navigator.clipboard.writeText(recommendationText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -107,13 +124,13 @@ export const DealRecommendationSection: React.FC<DealRecommendationSectionProps>
         <div>
           <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-xs text-[10px] font-mono uppercase bg-[#736152] text-white font-medium mb-1">
             <Target className="w-3 h-3 text-[#D4C8B8]" />
-            <span>STEP 4 &middot; DEAL NEGOTIATION BENCHMARKS & RECOMMENDATION</span>
+            <span>STEP 4 &middot; RECOMMENDATION & FINAL SUMMARY</span>
           </div>
           <h2 className="text-xl font-bold font-serif text-[#2C2C2C]">
-            4. 권장 협의안 (Negotiation Standards)
+            4. 권장 협의안 (Executive Recommendation)
           </h2>
           <p className="text-xs text-[#66584C] mt-1 font-light">
-            손실 방지 최소 조건(MINIMUM), 목표 수익 권장 조건(TARGET), 현재 파트너 제안(CURRENT OFFER)의 3대 기준을 비교하고 실행 가능한 협의안을 제시합니다.
+            당사 부담가치, 파트너 실질가, 목표 가치 기준을 대조하여 산출된 <strong>최종 결과 및 권장 협의안</strong>입니다.
           </p>
         </div>
 
@@ -137,119 +154,84 @@ export const DealRecommendationSection: React.FC<DealRecommendationSectionProps>
         </div>
       </div>
 
-      {/* 3 Criteria Benchmark Comparison Cards */}
+      {/* 3 Benchmark Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        {/* Card 1: MINIMUM (최소 조건) */}
-        <div className="bg-[#FAF8F5] border border-rose-200 rounded-xs p-5 space-y-4 relative overflow-hidden">
+        {/* Card 1: MINIMUM 필요가치 */}
+        <div className="bg-[#FAF8F5] border border-rose-200 rounded-xs p-5 space-y-3">
           <div className="flex items-center justify-between">
             <span className="px-2.5 py-0.5 bg-rose-100 text-rose-800 border border-rose-300 font-mono text-[10px] font-bold rounded-xs uppercase">
-              MINIMUM
+              MINIMUM 필요가치
             </span>
-            <span className="text-[10px] font-mono text-rose-700 font-bold">손실 방지 최소 조건</span>
+            <span className="text-[10px] font-mono text-rose-700 font-bold">손실 방지 마지노선</span>
           </div>
 
           <div>
-            <div className="text-xs text-[#786658]">최소 필요 파트너 실질가</div>
+            <div className="text-xs text-[#786658]">최소 필요 파트너 가치</div>
             <div className="text-2xl font-mono font-bold text-rose-900 mt-1">
-              ₩ {minRequiredValue.toLocaleString()}
+              ₩ {minRequiredValue.toLocaleString()}원
             </div>
-            <div className="text-[10px] text-[#8C7A6B] mt-0.5">
-              (약 {formatManWon(minInTenThousand)})
-            </div>
-          </div>
-
-          <div className="bg-white p-3 rounded-xs border border-rose-100 space-y-1.5 text-xs">
-            <div className="flex justify-between text-[#66584C]">
-              <span>현금 기준 최소 요구:</span>
-              <strong className="font-mono text-rose-900">₩{minRequiredValue.toLocaleString()}</strong>
-            </div>
-            <div className="flex justify-between text-[#66584C]">
-              <span>현물 소비자가 상당액 ({inKindRecognitionRate}% 인정):</span>
-              <strong className="font-mono text-rose-900">약 ₩{minInKindRetailEquivalent.toLocaleString()}</strong>
+            <div className="text-[11px] text-rose-800 font-medium mt-0.5">
+              ({formatKoreanMoney(minRequiredValue)})
             </div>
           </div>
 
-          <p className="text-[11px] text-[#786658] leading-relaxed">
-            당사의 실제 변동비(식음/인쇄 실비) 및 기회비용을 온전히 상쇄하여 <strong>현금 순손실을 방지</strong>하기 위한 마지노선 조건입니다.
+          <p className="text-[11px] text-[#786658] leading-relaxed pt-1 border-t border-rose-100">
+            할인 지원가치 및 직접 실비/기회비용을 온전히 상쇄하기 위한 최소 필요 조건 (= 당사 부담가치)
           </p>
         </div>
 
-        {/* Card 2: TARGET (권장 조건) */}
-        <div className="bg-[#FAF8F5] border-2 border-[#736152] rounded-xs p-5 space-y-4 relative overflow-hidden shadow-xs">
+        {/* Card 2: TARGET 필요가치 */}
+        <div className="bg-[#FAF8F5] border-2 border-[#736152] rounded-xs p-5 space-y-3 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="px-2.5 py-0.5 bg-[#736152] text-white font-mono text-[10px] font-bold rounded-xs uppercase">
-              TARGET (권장)
+              TARGET 필요가치
             </span>
-            <span className="text-[10px] font-mono text-[#736152] font-bold">목표 수익 반영 조건 (+{targetSurplusRate}%)</span>
+            <span className="text-[10px] font-mono text-[#736152] font-bold">목표가치율 +{targetSurplusRate}%</span>
           </div>
 
           <div>
-            <div className="text-xs text-[#786658]">목표 파트너 권장 실질가</div>
+            <div className="text-xs text-[#786658]">목표 파트너 권장 가치</div>
             <div className="text-2xl font-mono font-bold text-[#736152] mt-1">
-              ₩ {targetRequiredValue.toLocaleString()}
+              ₩ {targetRequiredValue.toLocaleString()}원
             </div>
-            <div className="text-[10px] text-[#8C7A6B] mt-0.5">
-              (약 {formatManWon(targetInTenThousand)})
-            </div>
-          </div>
-
-          <div className="bg-white p-3 rounded-xs border border-[#D4C8B8] space-y-1.5 text-xs">
-            <div className="flex justify-between text-[#2C2C2C]">
-              <span>현금 기준 권장 제안:</span>
-              <strong className="font-mono text-[#736152]">₩{targetRequiredValue.toLocaleString()}</strong>
-            </div>
-            <div className="flex justify-between text-[#2C2C2C]">
-              <span>현물 소비자가 상당액 ({inKindRecognitionRate}% 인정):</span>
-              <strong className="font-mono text-[#736152]">약 ₩{targetInKindRetailEquivalent.toLocaleString()}</strong>
+            <div className="text-[11px] text-[#736152] font-bold mt-0.5">
+              ({formatKoreanMoney(targetRequiredValue)})
             </div>
           </div>
 
-          <p className="text-[11px] text-[#5C4E43] leading-relaxed">
-            당사 지원가치({formatManWon(discountInTenThousand)}) 대비 <strong>목표 가치율 {targetSurplusRate}%를 달성</strong>하여 양사 윈-윈(Win-Win) 구조를 만드는 최적의 협상 목표입니다.
+          <p className="text-[11px] text-[#5C4E43] leading-relaxed pt-1 border-t border-[#D4C8B8]">
+            당사 부담가치 ₩{ourBurdenValue.toLocaleString()}원에 목표 추가가치율 {targetSurplusRate}%를 반영한 권장 협상 목표
           </p>
         </div>
 
-        {/* Card 3: CURRENT OFFER (현재 파트너 제안) */}
-        <div className="bg-[#FAF8F5] border border-[#D4C8B8] rounded-xs p-5 space-y-4 relative overflow-hidden">
+        {/* Card 3: CURRENT OFFER */}
+        <div className="bg-[#FAF8F5] border border-[#D4C8B8] rounded-xs p-5 space-y-3">
           <div className="flex items-center justify-between">
             <span className="px-2.5 py-0.5 bg-slate-200 text-slate-800 font-mono text-[10px] font-bold rounded-xs uppercase">
               CURRENT OFFER
             </span>
-            <span className="text-[10px] font-mono text-[#8C7A6B] font-bold">현재 파트너 제안가</span>
+            <span className="text-[10px] font-mono text-[#8C7A6B] font-bold">현재 파트너 실질가</span>
           </div>
 
           <div>
             <div className="text-xs text-[#786658]">파트너 실질 제공가치</div>
             <div className="text-2xl font-mono font-bold text-[#2C2C2C] mt-1">
-              ₩ {currentPartnerEffective.toLocaleString()}
+              ₩ {currentOffer.toLocaleString()}원
             </div>
-            <div className="text-[10px] text-[#8C7A6B] mt-0.5">
-              (현금 ₩{partnerCash.toLocaleString()} + 현물실질 ₩{partnerInKindRecognized.toLocaleString()})
-            </div>
-          </div>
-
-          <div className="bg-white p-3 rounded-xs border border-[#E8E4DC] space-y-1.5 text-xs">
-            <div className="flex justify-between text-[#66584C]">
-              <span>최소 조건 충족 여부:</span>
-              <strong className={`font-mono ${isMeetingMinimum ? 'text-emerald-700' : 'text-rose-700'}`}>
-                {isMeetingMinimum ? '✓ 충족 (PASS)' : '✗ 미달 (손실 리스크)'}
-              </strong>
-            </div>
-            <div className="flex justify-between text-[#66584C]">
-              <span>권장 목표 달성률:</span>
-              <strong className="font-mono text-[#2C2C2C]">{achievementRateVsTarget.toFixed(1)}%</strong>
+            <div className="text-[11px] text-[#2C2C2C] font-bold mt-0.5">
+              ({formatKoreanMoney(currentOffer)})
             </div>
           </div>
 
-          <div className="text-[11px] text-[#786658] leading-relaxed">
-            {gapToTarget <= 0 ? (
-              <span className="text-emerald-800 font-semibold">
-                ✓ 목표 조건을 ₩{(-gapToTarget).toLocaleString()}원 초과 달성하여 우수한 수익성을 제공합니다.
+          <div className="pt-1 border-t border-[#E8E4DC] text-[11px] leading-relaxed">
+            {gapAmount >= 0 ? (
+              <span className="text-emerald-800 font-bold">
+                ✓ TARGET 대비 {formatKoreanMoney(gapAmount)} 초과 달성
               </span>
             ) : (
-              <span className="text-amber-900">
-                목표 가치 달성을 위해 파트너로부터 <strong>₩{gapToTarget.toLocaleString()}원</strong> 상당의 추가 현금/현물 협찬을 확보하는 협의가 권장됩니다.
+              <span className="text-rose-700 font-bold">
+                ✗ TARGET 대비 {formatKoreanMoney(Math.abs(gapAmount))} 부족
               </span>
             )}
           </div>
@@ -257,14 +239,95 @@ export const DealRecommendationSection: React.FC<DealRecommendationSectionProps>
 
       </div>
 
-      {/* Final Synthesized Recommendation Box (Calculated Text) */}
+      {/* Required Final Summary Table Display Box */}
+      <div className="bg-[#FAF8F5] border border-[#D4C8B8] rounded-xs p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#E8E4DC] pb-3">
+          <div className="flex items-center space-x-2">
+            <Calculator className="w-4 h-4 text-[#736152]" />
+            <h3 className="text-sm font-bold font-serif text-[#2C2C2C]">
+              수익성 및 협상 지표 최종 요약 (Profitability Summary)
+            </h3>
+          </div>
+          <span className="text-[10px] font-mono text-[#8C7A6B]">수식 기반 자동 계산 결과</span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+          
+          <div className="bg-white p-3 rounded-xs border border-[#E8E4DC]">
+            <span className="text-[10px] text-[#8C7A6B] block">당사 부담가치</span>
+            <span className="text-sm font-bold text-rose-900 mt-1 block">
+              ₩ {ourBurdenValue.toLocaleString()}원
+            </span>
+            <span className="text-[10px] text-[#8C7A6B]">({formatKoreanMoney(ourBurdenValue)})</span>
+          </div>
+
+          <div className="bg-white p-3 rounded-xs border border-[#E8E4DC]">
+            <span className="text-[10px] text-[#8C7A6B] block">파트너 실질 제공가치</span>
+            <span className="text-sm font-bold text-emerald-800 mt-1 block">
+              ₩ {partnerEffectiveValue.toLocaleString()}원
+            </span>
+            <span className="text-[10px] text-[#8C7A6B]">({formatKoreanMoney(partnerEffectiveValue)})</span>
+          </div>
+
+          <div className="bg-white p-3 rounded-xs border border-[#E8E4DC]">
+            <span className="text-[10px] text-[#8C7A6B] block">예상 추가매출</span>
+            <span className="text-sm font-bold text-[#2C2C2C] mt-1 block">
+              ₩ {expectedAdditionalRevenue.toLocaleString()}원
+            </span>
+            <span className="text-[10px] text-[#8C7A6B]">({formatKoreanMoney(expectedAdditionalRevenue)})</span>
+          </div>
+
+          <div className="bg-white p-3 rounded-xs border border-[#E8E4DC]">
+            <span className="text-[10px] text-[#8C7A6B] block">예상 순효익</span>
+            <span className={`text-sm font-bold mt-1 block ${expectedNetBenefit >= 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
+              ₩ {expectedNetBenefit.toLocaleString()}원
+            </span>
+            <span className="text-[10px] text-[#8C7A6B]">({formatKoreanMoney(expectedNetBenefit)})</span>
+          </div>
+
+          <div className="bg-white p-3 rounded-xs border border-[#E8E4DC]">
+            <span className="text-[10px] text-[#8C7A6B] block">MINIMUM 필요가치</span>
+            <span className="text-sm font-bold text-rose-900 mt-1 block">
+              ₩ {minRequiredValue.toLocaleString()}원
+            </span>
+            <span className="text-[10px] text-[#8C7A6B]">({formatKoreanMoney(minRequiredValue)})</span>
+          </div>
+
+          <div className="bg-white p-3 rounded-xs border border-[#E8E4DC]">
+            <span className="text-[10px] text-[#8C7A6B] block">TARGET 필요가치</span>
+            <span className="text-sm font-bold text-[#736152] mt-1 block">
+              ₩ {targetRequiredValue.toLocaleString()}원
+            </span>
+            <span className="text-[10px] text-[#8C7A6B]">({formatKoreanMoney(targetRequiredValue)})</span>
+          </div>
+
+          <div className="bg-white p-3 rounded-xs border border-[#E8E4DC]">
+            <span className="text-[10px] text-[#8C7A6B] block">CURRENT OFFER</span>
+            <span className="text-sm font-bold text-[#2C2C2C] mt-1 block">
+              ₩ {currentOffer.toLocaleString()}원
+            </span>
+            <span className="text-[10px] text-[#8C7A6B]">({formatKoreanMoney(currentOffer)})</span>
+          </div>
+
+          <div className="bg-white p-3 rounded-xs border border-[#E8E4DC]">
+            <span className="text-[10px] text-[#8C7A6B] block">부족 / 초과 금액</span>
+            <span className={`text-sm font-bold mt-1 block ${gapAmount >= 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
+              {gapAmount >= 0 ? '+' : ''}₩ {gapAmount.toLocaleString()}원
+            </span>
+            <span className="text-[10px] font-bold">{gapAmount >= 0 ? '초과' : '부족'} ({formatKoreanMoney(gapAmount)})</span>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Executive Recommendation Box */}
       <div className="bg-[#2C2C2C] text-[#FAF8F5] p-6 rounded-xs border border-[#5C4E43] space-y-4">
         
         <div className="flex items-center justify-between border-b border-[#5C4E43] pb-3">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-4 h-4 text-amber-300" />
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#D4C8B8]">
-              EXECUTIVE NEGOTIATION RECOMMENDATION (최종 권장 협의안)
+            <span className="text-xs font-bold tracking-wider text-[#D4C8B8]">
+              최종 제휴 협상 권장안
             </span>
           </div>
 
@@ -278,14 +341,14 @@ export const DealRecommendationSection: React.FC<DealRecommendationSectionProps>
         </div>
 
         {/* The Exact Calculated Recommendation Statement */}
-        <div className="bg-[#1F1F1F] p-4 rounded-xs border border-[#5C4E43] text-sm leading-relaxed text-[#FAF8F5] font-light">
-          {calculatedSummary}
+        <div className="bg-[#1F1F1F] p-4 rounded-xs border border-[#5C4E43] text-sm leading-relaxed text-[#FAF8F5] font-normal">
+          {recommendationText}
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-[#D4C8B8] gap-3 pt-1">
           <div className="flex items-center space-x-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>수치 조작 없는 100% 코드 기반 산출식 적용 &middot; {companyName || '파트너'} 협상 미팅 시 즉시 활용 가능</span>
+            <span>수치 조작 없는 100% 코드 기반 수식 산출 결과 &middot; {companyName || '파트너'} 미팅 즉시 활용 가능</span>
           </div>
 
           <button

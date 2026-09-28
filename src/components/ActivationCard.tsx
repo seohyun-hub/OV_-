@@ -24,23 +24,23 @@ export const ActivationCard: React.FC<ActivationCardProps> = ({
     switch (status) {
       case 'ONGOING':
         return (
-          <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-mono font-bold rounded-xs flex items-center space-x-1">
+          <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold rounded-xs flex items-center space-x-1">
             <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-pulse" />
-            <span>ONGOING</span>
+            <span>진행중</span>
           </span>
         );
       case 'UPCOMING':
         return (
-          <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 border border-blue-300 text-[11px] font-mono font-bold rounded-xs flex items-center space-x-1">
+          <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 border border-blue-300 text-[11px] font-bold rounded-xs flex items-center space-x-1">
             <span className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
-            <span>UPCOMING</span>
+            <span>예정</span>
           </span>
         );
       case 'ENDED':
       default:
         return (
-          <span className="px-2.5 py-0.5 bg-slate-200 text-slate-700 border border-slate-300 text-[11px] font-mono font-bold rounded-xs">
-            ENDED
+          <span className="px-2.5 py-0.5 bg-slate-200 text-slate-700 border border-slate-300 text-[11px] font-bold rounded-xs">
+            종료
           </span>
         );
     }
@@ -166,21 +166,31 @@ export const ActivationCard: React.FC<ActivationCardProps> = ({
         </div>
 
         {/* Source Box */}
-        <div className="text-[11px] text-slate-500 font-mono flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100">
-          <div className="flex items-center space-x-1.5">
-            <span className="text-slate-400 font-bold">SOURCE:</span>
-            <span>{activation.source.title}</span>
-            {activation.source.refDate && <span className="text-slate-400">({activation.source.refDate})</span>}
+        <div className="text-[11px] text-slate-600 font-sans flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 bg-slate-50/50 p-2.5 rounded-xs border border-slate-200/50">
+          <div className="flex flex-wrap items-center gap-2">
+            {(activation.source.isOfficial || activation.source.sourceRole === 'OFFICIAL' || activation.source.title.includes('COEX') || activation.source.title.includes('공식') || activation.source.title.includes('홈페이지')) ? (
+              <span className="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] font-bold rounded-xs flex items-center space-x-1 shrink-0">
+                <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                <span>공식 확인</span>
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-300 text-[10px] font-bold rounded-xs flex items-center space-x-1 shrink-0">
+                <span>추가 확인 필요</span>
+              </span>
+            )}
+            <span className="text-slate-500 font-bold">출처:</span>
+            <span className="text-slate-800 font-medium">{activation.source.title}</span>
+            {activation.source.refDate && <span className="text-slate-400 text-[10px]">({activation.source.refDate} 확인)</span>}
           </div>
           {activation.source.url && (
             <a
               href={activation.source.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-1 text-blue-600 hover:underline"
+              className="inline-flex items-center space-x-1 text-blue-700 hover:text-blue-900 font-medium text-[11px] hover:underline shrink-0"
             >
-              <span>공식 출처 바로가기</span>
-              <ExternalLink className="w-3 h-3" />
+              <span>원문 보기</span>
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
           )}
         </div>

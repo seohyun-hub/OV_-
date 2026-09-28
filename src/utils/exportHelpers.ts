@@ -4,45 +4,97 @@ import * as XLSX from 'xlsx';
 import { ProposalData, ProposalSection } from '../types';
 
 /**
- * 1. PPTX EXPORT (10~12 Slides with Oak Valley Premium Resort Aesthetic)
+ * 1. PPTX EXPORT (Multi-slide Deck with Official Corporate Template Styling)
  */
-export async function exportProposalToPPTX(proposal: ProposalData): Promise<void> {
+export async function exportProposalToPPTX(
+  proposal: ProposalData,
+  templateStyle: 'IPARK' | 'OAK_VALLEY' | 'PARK_ROCHE' = 'IPARK',
+  connectedDeal?: any | null,
+  occData?: any | null
+): Promise<void> {
   const pptx = new pptxgen();
 
   pptx.layout = 'LAYOUT_16x9';
   pptx.title = `${proposal.companyName}_X_OakValley_Partnership_Proposal`;
 
-  // Theme colors
-  const BG_COLOR = 'FAF8F5';
-  const PRIMARY_COLOR = '2C2C2C';
-  const ACCENT_COLOR = '736152';
-  const LIGHT_ACCENT = 'EFECE6';
-  const TEXT_MUTED = '66584C';
+  // Palette definition by template style
+  let palette = {
+    titleBg: '0B192C',        // HDC IPARK Dark Navy
+    titleHeader: 'C5A059',    // Gold
+    titleText: 'FFFFFF',      // White
+    slideBg: 'F4F6F9',        // Light Grey
+    headerColor: '00205B',     // HDC IPARK Navy
+    primaryText: '1E293B',
+    factBg: 'E2E8F0',
+    factText: '0F172A',
+    strategicBg: 'E0E7FF',
+    strategicText: '1E1B4B',
+    footerText: '64748B',
+    fontTitle: 'Arial',
+    fontBody: 'Arial',
+    templateLabel: 'HDC IPARK OFFICIAL TEMPLATE',
+  };
 
-  // Title Slide
+  if (templateStyle === 'OAK_VALLEY') {
+    palette = {
+      titleBg: '2D4A3E',        // Oak Valley Forest Green
+      titleHeader: 'D4C8B8',    // Warm Sand
+      titleText: 'FFFFFF',
+      slideBg: 'FAF8F5',        // Warm Cream
+      headerColor: '736152',     // Oak Earth
+      primaryText: '2C2C2C',
+      factBg: 'EFECE6',
+      factText: '2C2C2C',
+      strategicBg: 'E8E4DC',
+      strategicText: '3C322A',
+      footerText: '66584C',
+      fontTitle: 'Georgia',
+      fontBody: 'Arial',
+      templateLabel: 'OAK VALLEY RESORT STYLE',
+    };
+  } else if (templateStyle === 'PARK_ROCHE') {
+    palette = {
+      titleBg: '3A3F3D',        // Park Roche Slate/Stone
+      titleHeader: 'A3B18A',    // Sage Green
+      titleText: 'FFFFFF',
+      slideBg: 'F5F7F6',        // Calm Zen White
+      headerColor: '4A5568',     // Deep Slate
+      primaryText: '1A202C',
+      factBg: 'E2E8F0',
+      factText: '1A202C',
+      strategicBg: 'E6EBE0',
+      strategicText: '2D3748',
+      footerText: '718096',
+      fontTitle: 'Arial',
+      fontBody: 'Arial',
+      templateLabel: 'PARK ROCHE WELLNESS STYLE',
+    };
+  }
+
+  // Slide 1: Cover Slide
   const titleSlide = pptx.addSlide();
-  titleSlide.background = { color: BG_COLOR };
+  titleSlide.background = { color: palette.titleBg };
 
-  titleSlide.addText('OAK VALLEY RESORT & PARK ROCHE', {
-    x: 1.0,
+  titleSlide.addText(palette.templateLabel, {
+    x: 0.8,
     y: 1.5,
     w: 11.3,
-    h: 0.5,
-    fontSize: 14,
-    color: ACCENT_COLOR,
+    h: 0.4,
+    fontSize: 12,
+    color: palette.titleHeader,
     bold: true,
-    fontFace: 'Georgia',
+    fontFace: palette.fontTitle,
   });
 
-  titleSlide.addText(`${proposal.companyName} × Oak Valley`, {
-    x: 1.0,
-    y: 2.2,
+  titleSlide.addText(`${proposal.companyName} × HDC RESORT`, {
+    x: 0.8,
+    y: 2.1,
     w: 11.3,
     h: 1.2,
-    fontSize: 32,
-    color: PRIMARY_COLOR,
+    fontSize: 34,
+    color: palette.titleText,
     bold: true,
-    fontFace: 'Georgia',
+    fontFace: palette.fontTitle,
   });
 
   titleSlide.addText(
@@ -50,45 +102,45 @@ export async function exportProposalToPPTX(proposal: ProposalData): Promise<void
       ? 'STRATEGIC PARTNERSHIP INTERNAL REVIEW DECK'
       : 'STRATEGIC PARTNERSHIP PROPOSAL',
     {
-      x: 1.0,
+      x: 0.8,
       y: 3.5,
       w: 11.3,
       h: 0.6,
       fontSize: 18,
-      color: ACCENT_COLOR,
-      fontFace: 'Arial',
+      color: palette.titleHeader,
+      fontFace: palette.fontBody,
     }
   );
 
-  titleSlide.addText(`Document Date: ${proposal.generatedAt} | Confidential`, {
-    x: 1.0,
+  titleSlide.addText(`Document Date: ${proposal.generatedAt} | HDC Resort & Oak Valley & Park Roche`, {
+    x: 0.8,
     y: 6.2,
     w: 11.3,
     h: 0.4,
     fontSize: 10,
-    color: TEXT_MUTED,
-    fontFace: 'Arial',
+    color: palette.titleHeader,
+    fontFace: palette.fontBody,
   });
 
-  // Section Slides
-  proposal.sections.forEach((sec, idx) => {
+  // Slide 2..N: Section Slides
+  proposal.sections.forEach((sec) => {
     if (proposal.proposalMode === 'PARTNER' && sec.isInternalOnly) {
       return; // Skip internal sections in partner mode
     }
 
     const slide = pptx.addSlide();
-    slide.background = { color: BG_COLOR };
+    slide.background = { color: palette.slideBg };
 
-    // Header
-    slide.addText(`OAK VALLEY PARTNERSHIP | ${proposal.companyName}`, {
+    // Header Tag
+    slide.addText(`HDC RESORT STRATEGIC PARTNERSHIP | ${proposal.companyName}`, {
       x: 0.8,
       y: 0.4,
       w: 11.5,
       h: 0.3,
       fontSize: 10,
-      color: ACCENT_COLOR,
+      color: palette.headerColor,
       bold: true,
-      fontFace: 'Arial',
+      fontFace: palette.fontBody,
     });
 
     // Slide Title
@@ -98,53 +150,123 @@ export async function exportProposalToPPTX(proposal: ProposalData): Promise<void
       w: 11.5,
       h: 0.6,
       fontSize: 22,
-      color: PRIMARY_COLOR,
+      color: palette.headerColor,
       bold: true,
-      fontFace: 'Georgia',
+      fontFace: palette.fontTitle,
     });
 
-    // Main Content Box
-    slide.addText(sec.content, {
-      x: 0.8,
-      y: 1.6,
-      w: 11.5,
-      h: 2.8,
-      fontSize: 13,
-      color: PRIMARY_COLOR,
-      fontFace: 'Arial',
-      lineSpacing: 20,
-    });
+    const isDealSlide = sec.title.includes('Barter') || sec.title.includes('Value') || sec.title.includes('제휴 조건') || sec.title.includes('Partnership Terms');
 
-    // Fact & Source Box (Bottom Left)
-    if (sec.factSummary) {
-      slide.addText(`FACT: ${sec.factSummary}`, {
+    if (isDealSlide && connectedDeal) {
+      // Main Content Box (smaller)
+      slide.addText(sec.content, {
         x: 0.8,
-        y: 4.6,
-        w: 5.6,
-        h: 1.5,
-        fontSize: 10,
-        color: PRIMARY_COLOR,
-        fill: { color: LIGHT_ACCENT },
-        align: 'left',
-        valign: 'top',
-        margin: 10,
+        y: 1.5,
+        w: 11.5,
+        h: 1.0,
+        fontSize: 12,
+        color: palette.primaryText,
+        fontFace: palette.fontBody,
       });
-    }
 
-    // Strategic Proposal Box (Bottom Right)
-    if (sec.strategicProposal) {
-      slide.addText(`STRATEGIC PROPOSAL: ${sec.strategicProposal}`, {
-        x: 6.7,
-        y: 4.6,
-        w: 5.6,
-        h: 1.5,
+      // Render Editable PowerPoint Table for Deal Items
+      const tableHeaders = [
+        { text: '구분', options: { bold: true, fill: palette.headerColor, color: 'FFFFFF' } },
+        { text: '제공항목', options: { bold: true, fill: palette.headerColor, color: 'FFFFFF' } },
+        { text: '정상가치', options: { bold: true, fill: palette.headerColor, color: 'FFFFFF' } },
+        { text: '제안조건', options: { bold: true, fill: palette.headerColor, color: 'FFFFFF' } },
+        { text: '비고', options: { bold: true, fill: palette.headerColor, color: 'FFFFFF' } },
+      ];
+
+      const tableRows: any[] = [tableHeaders];
+
+      if (Array.isArray(connectedDeal.items)) {
+        connectedDeal.items.forEach((it: any) => {
+          tableRows.push([
+            { text: it.category || '자산' },
+            { text: it.itemName },
+            { text: `₩${Number(it.normalPrice * (it.quantityNum || 1)).toLocaleString()}` },
+            { text: it.appliedPrice === 0 ? '100% 무상지원' : `₩${Number(it.appliedPrice).toLocaleString()}` },
+            { text: it.notes || '-' },
+          ]);
+        });
+      }
+
+      // Add summary row
+      const normTotal = Number(connectedDeal.totalNormalValue || 0).toLocaleString();
+      const negTotal = Number(connectedDeal.negotiatedValue || 0).toLocaleString();
+      tableRows.push([
+        { text: '합계 요약', options: { bold: true, fill: palette.factBg } },
+        { text: `총 ${connectedDeal.items?.length || 0}개 지정 항목`, options: { bold: true, fill: palette.factBg } },
+        { text: `총 ₩${normTotal}`, options: { bold: true, fill: palette.factBg } },
+        { text: `협의가 ₩${negTotal}`, options: { bold: true, fill: palette.factBg } },
+        { text: `Oak Valley 지원가치: ₩${Number(connectedDeal.discountAmount || 0).toLocaleString()}`, options: { bold: true, fill: palette.factBg } },
+      ]);
+
+      slide.addTable(tableRows, {
+        x: 0.8,
+        y: 2.6,
+        w: 11.5,
+        colW: [1.8, 4.0, 2.0, 2.0, 1.7],
         fontSize: 10,
-        color: PRIMARY_COLOR,
-        fill: { color: 'F5F2EB' },
-        align: 'left',
-        valign: 'top',
-        margin: 10,
+        fontFace: palette.fontBody,
+        border: { pt: 1, color: 'CCCCCC' },
       });
+
+      // Summary note below table
+      slide.addText(`* 정상가 기준 총 제공가치: ₩${normTotal}원 | 협의금액: ₩${negTotal}원 | Oak Valley 지원가치: ₩${Number(connectedDeal.discountAmount || 0).toLocaleString()}원`, {
+        x: 0.8,
+        y: 5.8,
+        w: 11.5,
+        h: 0.5,
+        fontSize: 10,
+        color: palette.primaryText,
+        bold: true,
+      });
+    } else {
+      // Standard Main Content Box
+      slide.addText(sec.content, {
+        x: 0.8,
+        y: 1.6,
+        w: 11.5,
+        h: 2.8,
+        fontSize: 13,
+        color: palette.primaryText,
+        fontFace: palette.fontBody,
+        lineSpacing: 20,
+      });
+
+      // Fact & Source Box (Bottom Left)
+      if (sec.factSummary) {
+        slide.addText(`VERIFIED FACT:\n${sec.factSummary}`, {
+          x: 0.8,
+          y: 4.6,
+          w: 5.6,
+          h: 1.5,
+          fontSize: 10,
+          color: palette.factText,
+          fill: { color: palette.factBg },
+          align: 'left',
+          valign: 'top',
+          margin: 10,
+        });
+      }
+
+      // Strategic Proposal Box (Bottom Right)
+      if (sec.strategicProposal) {
+        slide.addText(`AI STRATEGIC INSIGHT:\n${sec.strategicProposal}`, {
+          x: 6.7,
+          y: 4.6,
+          w: 5.6,
+          h: 1.5,
+          fontSize: 10,
+          color: palette.strategicText,
+          fill: { color: palette.strategicBg },
+          align: 'left',
+          valign: 'top',
+          margin: 10,
+        });
+      }
     }
 
     // Footer Source
@@ -155,15 +277,16 @@ export async function exportProposalToPPTX(proposal: ProposalData): Promise<void
         w: 11.5,
         h: 0.3,
         fontSize: 8,
-        color: TEXT_MUTED,
+        color: palette.footerText,
         italic: true,
       });
     }
   });
 
   const modeTag = proposal.proposalMode === 'INTERNAL' ? 'Internal_Review' : 'Proposal';
-  await pptx.writeFile({ fileName: `${proposal.companyName}_X_OakValley_${modeTag}_2026.pptx` });
+  await pptx.writeFile({ fileName: `${proposal.companyName}_X_OakValley_${modeTag}_${templateStyle}_2026.pptx` });
 }
+
 
 /**
  * 2. DOCX EXPORT (Formatted Word Document)
@@ -383,4 +506,226 @@ export function exportProposalToXLSX(proposal: ProposalData, barterPackage?: any
 
   const modeTag = proposal.proposalMode === 'INTERNAL' ? 'Internal_Review' : 'Proposal';
   XLSX.writeFile(wb, `${proposal.companyName}_X_OakValley_${modeTag}_2026.xlsx`);
+}
+
+/**
+ * 4. DEAL CALCULATION XLSX EXPORT (Deterministic Deal Builder & Economics Workbook)
+ */
+export interface DealCalculationExportData {
+  dealCreate: {
+    brandName: string;
+    eventName: string;
+    expectedParticipants: string;
+    eventDate: string;
+    purpose: string;
+  };
+  selectedAssetRows: Array<{
+    category: string;
+    itemName: string;
+    unit: string;
+    normalPrice: number;
+    quantityNum: number;
+    appliedPrice: number;
+    notes: string;
+  }>;
+  totalNormalValue: number;
+  totalAgreedPrice: number;
+  totalOakValleySupportValue: number;
+  averageDiscountRate: number;
+  realCosts: {
+    operatingLabor: number;
+    outsourcingCost: number;
+    setupCost: number;
+    fnbCost: number;
+    otherCost: number;
+    opportunityCost: number;
+  };
+  totalDirectCosts: number;
+  guaranteedRevenues: {
+    venueRevenue: number;
+    roomRevenue: number;
+    golfRevenue: number;
+    fnbRevenue: number;
+    participantFeeRevenue: number;
+    brandCashSponsorship: number;
+    otherRevenue: number;
+  };
+  totalGuaranteedRevenues: number;
+  brandContribution: {
+    cashSponsorship: number;
+    inKindSupportRetail: number;
+    inKindRecognitionRate: number;
+    inKindRecognizedValue: number;
+    mediaAdvValue: number;
+    snsContentValue: number;
+    influencerValue: number;
+    crmDbValue: number;
+    prizesValue: number;
+    staffValue: number;
+    otherSupportValue: number;
+  };
+  totalBrandRecognizedValue: number;
+  targetProfitMode: string;
+  targetNetProfitAmount: number;
+  gapAmount: number;
+  advisorResult?: any | null;
+  masterRateCard?: Array<{
+    category: string;
+    itemName: string;
+    unit: string;
+    normalPrice: number;
+    condition: string;
+    notes: string;
+  }>;
+}
+
+export function exportDealCalculationToXLSX(data: DealCalculationExportData): void {
+  const wb = XLSX.utils.book_new();
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  // Sheet 1: 제휴조건_수익성_계산표
+  const calcRows: (string | number)[][] = [
+    ['[오크밸리 리조트] 제휴 조건 및 수익성 산정표 (Deal Economics)', ''],
+    ['작성일자', todayStr],
+    ['파트너 브랜드', data.dealCreate.brandName || '제휴 브랜드'],
+    ['행사 / 프로젝트명', data.dealCreate.eventName || '제휴 프로젝트'],
+    ['일정 / 기간', data.dealCreate.eventDate || '협의 예정'],
+    ['예상 규모 / 대상', data.dealCreate.expectedParticipants || '협의 예정'],
+    ['제휴 목적', data.dealCreate.purpose || '브랜드 체험 및 프로모션'],
+    ['', ''],
+
+    ['1. 오크밸리 제공 자산 내역 및 할인율 (Asset Matching)', '', '', '', '', '', '', '', ''],
+    ['구분', '항목명', '단위', '정상단가(원)', '수량', '총 정상가(원)', '협의단가(원)', '총 협의가(원)', '지원가치(할인액)', '할인율(%)', '비고'],
+  ];
+
+  data.selectedAssetRows.forEach((row) => {
+    const rowNormalTotal = row.normalPrice * row.quantityNum;
+    const rowAgreedTotal = row.appliedPrice * row.quantityNum;
+    const rowDiscount = rowNormalTotal - rowAgreedTotal;
+    const rowRate = rowNormalTotal > 0 ? ((rowDiscount / rowNormalTotal) * 100).toFixed(1) : '0';
+    calcRows.push([
+      row.category,
+      row.itemName,
+      row.unit,
+      row.normalPrice,
+      row.quantityNum,
+      rowNormalTotal,
+      row.appliedPrice,
+      rowAgreedTotal,
+      rowDiscount,
+      `${rowRate}%`,
+      row.notes || '',
+    ]);
+  });
+
+  calcRows.push([
+    '합계 (TOTAL)',
+    '-',
+    '-',
+    '-',
+    '-',
+    data.totalNormalValue,
+    '-',
+    data.totalAgreedPrice,
+    data.totalOakValleySupportValue,
+    `${data.averageDiscountRate.toFixed(1)}%`,
+    '오크밸리 지원 가치 합계',
+  ]);
+
+  calcRows.push(['', '']);
+  calcRows.push(['2. 원가 및 확정 매출 분석 (Real Economics)', '']);
+  calcRows.push(['구분', '항목', '금액(원)', '산출 세부 내역']);
+  calcRows.push(['직접 비용', '현장 운영 인건비', data.realCosts.operatingLabor, '당사 스태프/안전 관리 투입비']);
+  calcRows.push(['직접 비용', '외주 용역비', data.realCosts.outsourcingCost, '전문 외주 용역 투입비']);
+  calcRows.push(['직접 비용', '무대/설비 설치비', data.realCosts.setupCost, '전력, 부스, 배너 설치 실비']);
+  calcRows.push(['직접 비용', 'F&B 식음료 원가', data.realCosts.fnbCost, '케이터링/음료 재료 원가']);
+  calcRows.push(['직접 비용', '기타 직접비', data.realCosts.otherCost, '폐기물/기타 잡비']);
+  calcRows.push(['직접 비용', '기회비용(객실/대관)', data.realCosts.opportunityCost, '일반 유료 고객 대체 손실']);
+  calcRows.push(['직접비용 합계', '총 추가 지출 비용', data.totalDirectCosts, '원가(Outflow) 총계']);
+
+  calcRows.push(['', '']);
+  calcRows.push(['확정 매출', '공간 대관 매출', data.guaranteedRevenues.venueRevenue, '대관료 현금 유입']);
+  calcRows.push(['확정 매출', '객실 확정 매출 (Guaranteed)', data.guaranteedRevenues.roomRevenue, '협의 객실료 정산액']);
+  calcRows.push(['확정 매출', '골프/F&B/부대 매출', data.guaranteedRevenues.golfRevenue + data.guaranteedRevenues.fnbRevenue, '부대시설 확정 결제']);
+  calcRows.push(['확정 매출', '참가비/기타 배분 매출', data.guaranteedRevenues.participantFeeRevenue + data.guaranteedRevenues.otherRevenue, '프로그램 참가비 배분']);
+  calcRows.push(['확정 매출', '브랜드 현금 협찬금', data.guaranteedRevenues.brandCashSponsorship, '스폰서십 현금 유입']);
+  calcRows.push(['확정매출 합계', '총 확정 현금 유입', data.totalGuaranteedRevenues, '확정 매출(Inflow) 총계']);
+
+  calcRows.push(['', '']);
+  calcRows.push(['3. 브랜드 기여 및 현물 가치 (Brand Contribution)', '']);
+  calcRows.push(['구분', '항목', '정상가/소비자가(원)', '인정률(%)', '인정 가치(원)']);
+  calcRows.push(['현물 협찬', '제품/기프트 협찬', data.brandContribution.inKindSupportRetail, `${data.brandContribution.inKindRecognitionRate}%`, data.brandContribution.inKindRecognizedValue]);
+  calcRows.push(['마케팅 가치', '자체 미디어/광고 송출', data.brandContribution.mediaAdvValue, '100%', data.brandContribution.mediaAdvValue]);
+  calcRows.push(['마케팅 가치', 'SNS 콘텐츠/바이럴 가치', data.brandContribution.snsContentValue, '100%', data.brandContribution.snsContentValue]);
+  calcRows.push(['마케팅 가치', '인플루언서 섭외 가치', data.brandContribution.influencerValue, '100%', data.brandContribution.influencerValue]);
+  calcRows.push(['마케팅 가치', 'CRM/고객 DB 확보 가치', data.brandContribution.crmDbValue, '100%', data.brandContribution.crmDbValue]);
+  calcRows.push(['브랜드가치 합계', '총 인정 브랜드 가치', '-', '-', data.totalBrandRecognizedValue]);
+
+  calcRows.push(['', '']);
+  calcRows.push(['4. 손익 GAP 및 승인 판정 (Profitability Status)', '']);
+  calcRows.push(['항목', '금액 / 내용', '비고']);
+  calcRows.push(['목표 순수익 기준', data.targetProfitMode, '']);
+  calcRows.push(['목표 순수익 금액', data.targetNetProfitAmount, '달성 목표 이익']);
+  calcRows.push(['총 직접 비용', data.totalDirectCosts, '추가 지출 원가']);
+  calcRows.push(['총 확정 매출', data.totalGuaranteedRevenues, '확정 현금 수입']);
+  calcRows.push(['달성 GAP (부족액/초과이익)', data.gapAmount <= 0 ? `+₩${Math.abs(data.gapAmount).toLocaleString()}원 (초과 달성)` : `-₩${data.gapAmount.toLocaleString()}원 (추가 확보 필요)`, '비용 + 목표이익 - 확정매출']);
+  calcRows.push(['최종 승인 판정', data.advisorResult?.verdict?.verdictType || (data.gapAmount <= 0 ? '승인 권고 (Approved)' : '조건부 승인 (Negotiate)'), data.advisorResult?.verdict?.rationale || '']);
+
+  if (data.advisorResult?.negotiationLadder) {
+    calcRows.push(['', '']);
+    calcRows.push(['5. 협상 사다리 3단계 비교 (Negotiation Ladder)', '', '', '', '']);
+    calcRows.push(['단계', '총 확보가치(원)', '객실 Guarantee', '참가비 배분', '현금/현물 조건', '전략 개요']);
+    calcRows.push([
+      'IDEAL (이상 조건)',
+      data.advisorResult.negotiationLadder.ideal.totalSecuredValue,
+      data.advisorResult.negotiationLadder.ideal.roomGuarantee,
+      data.advisorResult.negotiationLadder.ideal.participantFeeShare,
+      `${data.advisorResult.negotiationLadder.ideal.cashSponsorship} / ${data.advisorResult.negotiationLadder.ideal.inKindTerms}`,
+      data.advisorResult.negotiationLadder.ideal.description,
+    ]);
+    calcRows.push([
+      'TARGET (목표 조건)',
+      data.advisorResult.negotiationLadder.target.totalSecuredValue,
+      data.advisorResult.negotiationLadder.target.roomGuarantee,
+      data.advisorResult.negotiationLadder.target.participantFeeShare,
+      `${data.advisorResult.negotiationLadder.target.cashSponsorship} / ${data.advisorResult.negotiationLadder.target.inKindTerms}`,
+      data.advisorResult.negotiationLadder.target.description,
+    ]);
+    calcRows.push([
+      'MINIMUM (최소 조건)',
+      data.advisorResult.negotiationLadder.minimum.totalSecuredValue,
+      data.advisorResult.negotiationLadder.minimum.roomGuarantee,
+      data.advisorResult.negotiationLadder.minimum.participantFeeShare,
+      `${data.advisorResult.negotiationLadder.minimum.cashSponsorship} / ${data.advisorResult.negotiationLadder.minimum.inKindTerms}`,
+      data.advisorResult.negotiationLadder.minimum.description,
+    ]);
+  }
+
+  const wsCalc = XLSX.utils.aoa_to_sheet(calcRows);
+  XLSX.utils.book_append_sheet(wb, wsCalc, '제휴조건_수익성_계산표');
+
+  // Sheet 2: Master_Rate_Card
+  if (data.masterRateCard && data.masterRateCard.length > 0) {
+    const rateCardRows: (string | number)[][] = [
+      ['[오크밸리 리조트] Master Rate Card (기준 단가표)', '', '', '', '', ''],
+      ['카테고리', '자산 항목명', '제공 단위', '정상 단가(원)', '기준 할인 조건', '산출 근거 및 비고'],
+    ];
+
+    data.masterRateCard.forEach((item) => {
+      rateCardRows.push([
+        item.category,
+        item.itemName,
+        item.unit,
+        item.normalPrice,
+        item.condition,
+        item.notes || '',
+      ]);
+    });
+
+    const wsRateCard = XLSX.utils.aoa_to_sheet(rateCardRows);
+    XLSX.utils.book_append_sheet(wb, wsRateCard, 'Master_Rate_Card');
+  }
+
+  const safeBrand = (data.dealCreate.brandName || '제휴브랜드').replace(/[^a-zA-Z0-9가-힣]/g, '_');
+  XLSX.writeFile(wb, `[오크밸리_제휴조건계산]_${safeBrand}_${todayStr.replace(/-/g, '')}.xlsx`);
 }

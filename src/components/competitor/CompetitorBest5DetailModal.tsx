@@ -222,8 +222,8 @@ export const CompetitorBest5DetailModal: React.FC<CompetitorBest5DetailModalProp
 
         {/* Modal Footer */}
         <div className="bg-[#F5F2EB] px-6 py-4 border-t border-[#E8E4DC] flex items-center justify-between text-xs text-[#786658]">
-          <div className="flex items-center space-x-1 font-mono">
-            <span>Oak Valley & PARK ROCHE Resort Intelligence Case Analysis</span>
+          <div className="flex items-center space-x-1">
+            <span>오크밸리 & 파크로쉬 사례 분석</span>
           </div>
           <button
             onClick={onClose}
